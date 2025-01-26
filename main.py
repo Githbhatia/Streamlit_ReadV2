@@ -131,8 +131,11 @@ def accelim(x,y,z):
 
 # Title
 st.title("Read V2/V2c")
-
+st.write("V2/V2c are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste")
+st.write("https://www.strongmotioncenter.org/")
+st.write("This app helps read the file and show the recording and create spectra from the recordings")
 filenames=st.file_uploader("Upload V2/V2c zip file",type=[ "zip"])
+
 V2c = V2 = False
 f= None
 f_all=[];f_name=[]

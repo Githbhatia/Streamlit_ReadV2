@@ -375,16 +375,19 @@ if filenames != None:
         ax[0].set_xlim(starttime,endtime)
 
         ax[0].set_title(nameCh1)
+        ax[0].grid()
         ax[0].plot(T1,scaledAccel1, label="Channel1", color= 'Red', linewidth=1.0)
         amax=maxaccel(scaledAccel1, T1); ax[0].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(scaledAccel1, T1); ax[0].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
 
         ax[1].set_title(nameCh2)
+        ax[1].grid()
         ax[1].plot(T1,scaledAccel2, label="Channel2", color= 'Red', linewidth=1.0)
         amax=maxaccel(scaledAccel2, T1); ax[1].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(scaledAccel2, T1); ax[1].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
 
         ax[2].set_title(nameCh3)
+        ax[2].grid()
         ax[2].plot(T1,scaledAccel3, label="Channel3", color= 'Red', linewidth=1.0)
         amax=maxaccel(scaledAccel3, T1); ax[2].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(scaledAccel3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')

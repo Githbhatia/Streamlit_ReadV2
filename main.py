@@ -5,7 +5,8 @@ import zipfile, io
 from itertools import islice
 from RS_function import RS_function
 
-def readFileV2c(f, f_name):
+@st.cache_data
+def readFileV2c(_f, f_name):
     for line in islice(f, 1, 2):   
         recTime = line[10:].strip()
         # print(recTime)
@@ -94,6 +95,14 @@ def minaccel(x, t):
 def saveFile():
     textstring=""
     j=0
+    textstring += "Time(sec)"
+    if wch1:
+        textstring += ", Channel_1"
+    if wch2:
+        textstring += ", Channel_2"
+    if wch3:
+        textstring += ", Channel_3"
+    textstring += "\n"
     index = len(T1)
     while j < index:
         textstring += str(round(T1[j],3))
@@ -110,6 +119,14 @@ def saveFile():
 def rsaveFile():
     textstring=""
     j=0
+    textstring += "Time_Period(sec)"
+    if rch1:
+        textstring += ", Channel_1"
+    if rch2:
+        textstring += ", Channel_2"
+    if rch3:
+        textstring += ", Channel_3"
+    textstring += "\n"
     index = len(tT)
     while j < index:
         textstring += str(round(tT[j],3))
@@ -180,11 +197,11 @@ if filenames != None:
         st.write('Error', 'V2 File not selected, exiting')
         exit()
     EOF =0
-
+    placeholder = st.empty()
     if V2c:
         EOF = 0
         for index,vfl in enumerate(f_name):
-            print("Reading V2c files")
+            placeholder.write("Reading V2c file " + str(index))
             if "HNE.--.acc" in vfl:
                 f = f_all[index]
                 recTime,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFileV2c(f,f_name[index])
@@ -212,7 +229,7 @@ if filenames != None:
             if "HNZ.--.dis" in vfl:
                 f = f_all[index]
                 recTime,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl2,displ3 = readFileV2c(f,f_name[index])
-        print("Completed reading V2c files")
+        placeholder.write("Completed reading V2c files")
         unitsAccel1 = unitsAccel2 = unitsAccel3 = "cm/sec2"
         unitsVel1 = unitsVel2 = unitsVel3 = "cm/sec"
         unitsDispl1 = unitsDispl2 = unitsDispl3 = "cm"
@@ -351,49 +368,66 @@ if filenames != None:
     st.header(recTime)
     starttime = float(st.text_input("Start Time",str(startlimAccel())))
     endtime = float(st.text_input("End Time",str(endlimAccel())))
-    st.subheader("Recorded Accelerations")
+    st.subheader("Recorded Values")
     width = st.sidebar.slider("plot width", 1, 25, 10)
     height = st.sidebar.slider("plot height", 1, 10, 8)
-    
-    
+    doption = st.selectbox("Plot",("Accel", "Vel", "Disp"),)
+
     if EOF == 1:
+        if doption =="Disp":
+            rT='Disp (cm)'
+            yV = displ1
+        elif doption =="Vel":
+            rT ='Vel (cm/sec)'
+            yV = vel1
+        else:
+            rT ='Accel (g)'
+            yV = scaledAccel1
         fig, ax = plt.subplots(1,1,sharex='col',sharey='all',figsize=(width, height))
 
         ax.set_xlabel('Time (secs)')
-        ax.set_ylabel('Accel(g)')
+        ax.set_ylabel(rT)
         ax.set_xlim(starttime,endtime)
 
         ax.set_title(nameCh1)
-        ax.plot(T1,scaledAccel1, label="Channel1", color= 'Red', linewidth=1.0)
-        amax=maxaccel(scaledAccel1, T1); ax.annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
-        amin=minaccel(scaledAccel1, T1); ax.annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
+        ax.plot(T1,yV, label="Channel1", color= 'Red', linewidth=1.0)
+        amax=maxaccel(yV, T1); ax.annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+        amin=minaccel(yV, T1); ax.annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
         st.pyplot(fig)
     else:
         fig, ax = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
-
+        if doption =="Disp":
+            rT='Disp (cm)'
+            yV1 = displ1; yV2 = displ2; yV3 = displ2
+        elif doption =="Vel":
+            rT ='Vel (cm/sec)'
+            yV1 = vel1; yV2 = vel2; yV3 = vel3
+        else:
+            rT ='Accel (g)'
+            yV1 = scaledAccel1; yV2 = scaledAccel2; yV3 = scaledAccel2; 
         ax[2].set_xlabel('Time (secs)')
-        ax[0].set_ylabel('Accel(g)')
-        ax[1].set_ylabel('Accel(g)')
-        ax[2].set_ylabel('Accel(g)')
+        ax[0].set_ylabel(rT)
+        ax[1].set_ylabel(rT)
+        ax[2].set_ylabel(rT)
         ax[0].set_xlim(starttime,endtime)
 
         ax[0].set_title(nameCh1)
         ax[0].grid()
-        ax[0].plot(T1,scaledAccel1, label="Channel1", color= 'Red', linewidth=1.0)
-        amax=maxaccel(scaledAccel1, T1); ax[0].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
-        amin=minaccel(scaledAccel1, T1); ax[0].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
+        ax[0].plot(T1,yV1, label="Channel1", color= 'Red', linewidth=1.0)
+        amax=maxaccel(yV1, T1); ax[0].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+        amin=minaccel(yV1, T1); ax[0].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
 
         ax[1].set_title(nameCh2)
         ax[1].grid()
-        ax[1].plot(T1,scaledAccel2, label="Channel2", color= 'Red', linewidth=1.0)
-        amax=maxaccel(scaledAccel2, T1); ax[1].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
-        amin=minaccel(scaledAccel2, T1); ax[1].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
+        ax[1].plot(T1,yV2, label="Channel2", color= 'Red', linewidth=1.0)
+        amax=maxaccel(yV2, T1); ax[1].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+        amin=minaccel(yV2, T1); ax[1].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
 
         ax[2].set_title(nameCh3)
         ax[2].grid()
-        ax[2].plot(T1,scaledAccel3, label="Channel3", color= 'Red', linewidth=1.0)
-        amax=maxaccel(scaledAccel3, T1); ax[2].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
-        amin=minaccel(scaledAccel3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
+        ax[2].plot(T1,yV3, label="Channel3", color= 'Red', linewidth=1.0)
+        amax=maxaccel(yV3, T1); ax[2].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+        amin=minaccel(yV3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
         st.pyplot(fig)
 
 
@@ -463,22 +497,26 @@ if filenames != None:
             ax[2].text(0.97, 0.97, 'Damping=' + str(round(xi,3)), horizontalalignment='right', verticalalignment='top', fontsize=8, color ='Black',transform=ax[2].transAxes)
             st.pyplot(fig2)
 
- 
+
     st.subheader("Download Accelerations")
     wch1 = st.checkbox("Download Acceleration " + nameCh1)
-    wch2 = st.checkbox("Download Accelertaion " + nameCh2)
-    wch3 = st.checkbox("Download Acceleration " + nameCh3)
+    if EOF == 1:
+        wch2 = wch3 = False
+    else:
+        wch2 = st.checkbox("Download Accelertaion " + nameCh2)
+        wch3 = st.checkbox("Download Acceleration " + nameCh3)
     if wch1 or wch2 or wch3:
         text_contents = saveFile()
         st.download_button("Save Acceleration file", text_contents)
 
-    if respsec:
-        st.subheader("Download Response Spectra")
-        rch1 = st.checkbox("Download Spectrum " + nameCh1)
-        rch2 = st.checkbox("Download Spectrum" + nameCh2)
-        rch3 = st.checkbox("Download Spectrum " + nameCh3)
-        if rch1 or rch2 or rch3:
-            text_contents = rsaveFile()
-            st.download_button("Save Response Spectra file", text_contents)
+    if EOF != 1:
+        if respsec:
+            st.subheader("Download Response Spectra")
+            rch1 = st.checkbox("Download Spectrum " + nameCh1)
+            rch2 = st.checkbox("Download Spectrum" + nameCh2)
+            rch3 = st.checkbox("Download Spectrum " + nameCh3)
+            if rch1 or rch2 or rch3:
+                text_contents = rsaveFile()
+                st.download_button("Save Response Spectra file", text_contents)
 
 

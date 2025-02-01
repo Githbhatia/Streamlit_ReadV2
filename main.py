@@ -98,11 +98,11 @@ def saveFile():
     j=0
     textstring += "Time(sec)"
     if wch1:
-        textstring += ", Channel_1"
+        textstring += ", " + nameCh1.replace(" ", "_")
     if wch2:
-        textstring += ", Channel_2"
+        textstring += ", " + nameCh2.replace(" ", "_")
     if wch3:
-        textstring += ", Channel_3"
+        textstring += ", " + nameCh3.replace(" ", "_")
     textstring += "\n"
     index = len(T1)
     while j < index:
@@ -124,11 +124,11 @@ def rsaveFile():
     i = 0
     while i < len(xi):
         if rch1:
-            textstring += ", Channel_1_" + str(round(xi[i],3))
+            textstring += ", " + nameCh1.replace(" ", "_") + "_" + str(round(xi[i],3))
         if rch2:
-            textstring += ", Channel_2_" + str(round(xi[i],3))
+            textstring += ", " + nameCh2.replace(" ", "_") + "_" + str(round(xi[i],3))
         if rch3:
-            textstring += ", Channel_3_" + str(round(xi[i],3))
+            textstring += ", " + nameCh3.replace(" ", "_") + "_" + str(round(xi[i],3))
         i+=1
     textstring += "\n"
     index = len(tT)

@@ -5,6 +5,7 @@ import zipfile, io
 from itertools import islice
 from RS_function import RS_function
 
+
 @st.cache_data
 def readFileV2c(_f, f_name):
     for line in islice(f, 1, 2):   
@@ -120,22 +121,28 @@ def rsaveFile():
     textstring=""
     j=0
     textstring += "Time_Period(sec)"
-    if rch1:
-        textstring += ", Channel_1"
-    if rch2:
-        textstring += ", Channel_2"
-    if rch3:
-        textstring += ", Channel_3"
+    i = 0
+    while i < len(xi):
+        if rch1:
+            textstring += ", Channel_1_" + str(round(xi[i],3))
+        if rch2:
+            textstring += ", Channel_2_" + str(round(xi[i],3))
+        if rch3:
+            textstring += ", Channel_3_" + str(round(xi[i],3))
+        i+=1
     textstring += "\n"
     index = len(tT)
     while j < index:
         textstring += str(round(tT[j],3))
-        if rch1:
-            textstring += ", " + str(S1[j]) 
-        if rch2:
-            textstring += ", " + str(S2[j])
-        if rch3:
-            textstring += ", " + str(S3[j])
+        i = 0
+        while i < len(xi):
+            if rch1:
+                textstring += ", " + str(sAll[0][i][j]) 
+            if rch2:
+                textstring += ", " + str(sAll[1][i][j])
+            if rch3:
+                textstring += ", " + str(sAll[2][i][j])
+            i+=1
         textstring += "\n"
         j+= 1
     return (textstring)
@@ -145,6 +152,87 @@ def accelim(x,y,z):
     ymax = max([abs(i) for i in y])
     zmax = max([abs(i) for i in z])
     return max([xmax,ymax,zmax])
+
+def tripartitegrids(scale,plt,ax,xl,xr):
+    aSeries = np.array([0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100])
+    dSeries = np.array([0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100])
+    bset= np.array([0.01,0.1,1,10,100])
+    bset2 = np.array([0.06,0.08,0.09,0.6,0.8,0.9,6,7,8,9,60,80,90])
+    periodLimit, velLimit =  ax.transData.inverted().transform(ax.transAxes.transform((0.95,0.95)))
+    periodLimit0, velLimit0 =  ax.transData.inverted().transform(ax.transAxes.transform((0.0,0.0)))
+   
+
+    for i, items in enumerate(aSeries):
+        t0 =2*np.pi*velLimit0/(aSeries[i]*scale)
+        t1= 2*np.pi*velLimit/(aSeries[i]*scale)
+        
+        t=t1;v=velLimit
+        m = str(aSeries[i])+ "g"
+        if aSeries[i] in bset:
+            ax.plot([t0,t],[velLimit0,velLimit], linestyle="--", color= 'k',linewidth=0.3)
+            if t < 0.95*xr and t > 1.05*xl:
+                ax.annotate(m, xy=(t,v), xytext=(t,v), fontsize=5, color= 'k')
+        elif aSeries[i] in bset2:
+            ax.plot([t0,t1],[velLimit0,velLimit], linestyle="--", color= 'c',linewidth=0.3)
+        else:
+            ax.plot([t0,t1],[velLimit0,velLimit], linestyle="--", color= 'c',linewidth=0.3)
+            if t < 0.95*xr and t > 1.05*xl:
+                ax.annotate(m, xy=(t,v), xytext=(t,v), fontsize=5, color= 'c')
+
+    for i, items in enumerate(dSeries):
+        t0 =2*np.pi*dSeries[i]/velLimit0
+        t1= 2*np.pi*dSeries[i]/velLimit
+        t=t0; v=velLimit0
+        m= str(dSeries[i])+"cm"
+        if dSeries[i] in bset:        
+            ax.plot([t0,t1],[velLimit0,velLimit], linestyle="--", color= 'k',linewidth=0.3)
+            if t < 0.95*xr and t > 1.05*xl:
+                ax.annotate(m, xy=(t,v), xytext=(t,v), ha='left', va="top",fontsize=5, color= 'k')
+        elif dSeries[i] in bset2:
+            ax.plot([t0,t1],[velLimit0,velLimit], linestyle="--", color= 'm',linewidth=0.3)
+        else:
+            ax.plot([t0,t1],[velLimit0,velLimit], linestyle="--", color= 'm',linewidth=0.3)
+            if t < 0.95*xr and t > 1.05*xl:
+                ax.annotate(m, xy=(t,v), xytext=(t,v), ha='left', va="top",fontsize=5, color= 'm')
+
+def resSpectrafn(accel,ax,rU,rT,channel):
+    Sfin=[]
+    for i in range(0,len(xi)):
+        Sfin= RS_function(accel[int(starttime/dtAccel1):int(endtime/dtAccel1)], df, tT, xi[i], Resp_type = rT)
+        if option =="Accel":
+            sAll[channel,i,:]=Sfin[0,:]*scaleValue(unitsAccel1)
+        else:
+            sAll[channel,i,:]=Sfin[0,:]
+        amax=[tT[np.argmax(abs(sAll[channel,i,:]))], max(abs(sAll[channel,i,:]))]
+        labl = "Damping = "+ str(round(xi[i],3))+ ": Max at "+ str(round(amax[0],3)) +"sec, "+str(round(amax[1],2)) + rU
+        ax.plot(tT,sAll[channel,i,:],label=labl,linewidth=1.0)
+        
+    ax.grid()
+    ax.set_ylabel(rL)
+    return(1)
+
+def resTripSpectrafn(accel,ax):
+    Sfin=[]
+    for i in range(0,len(xi)):       
+        Sfin= RS_function(accel[int(starttime/dtAccel1):int(endtime/dtAccel1)], df, tT, xi[i], Resp_type = 'SA')
+        S=Sfin[0,:]/(2*np.pi/tT)
+        labl = 'Damping=' + str(round(xi[i],3))
+        ax.plot(tT,S,linewidth=1.0, label = labl)
+        
+
+    x_left = np.min(tT); x_right =max(tT)
+    ax.set_ylabel('Psuedo Velocity '+ unitsVel1)
+    ax.grid()
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    # x,y =ax.get_ylim()
+    # y = y*1.2
+    # ax.set_ylim(x,y)
+    tripartitegrids(1/scaleValue(unitsAccel1),plt,ax,x_left,x_right)
+    ax.set_xlim(x_left,x_right)
+    return(1)
+
+
 
 # Title
 st.title("Read V2/V2c")
@@ -434,13 +522,14 @@ if filenames != None:
         st.subheader("Response Spectra")
         respsec = st.checkbox("Create Response Spectra")
         if respsec:
-            xi = float(st.text_input("Damping",str("0.05")))
+            xiStr = st.text_input("Damping values (3)",str("0.0, 0.02, 0.05"))
+            xi =[float(i) for i in xiStr.split(",")]
             endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
             option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)
             tT = np.concatenate( (np.arange(0.05, 0.1, 0.005) , np.arange (0.1, 0.5, 0.01) , np.arange (0.5, 1, 0.02) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
             freq = 1/tT # Frequenxy vector
             df = 1.0/dtAccel1
-            Sfin=[]
+            sAll = np.zeros((3,len(xi),len(tT)))
 
             yaxislimit = round(accelim(scaledAccel1, scaledAccel2, scaledAccel3)*1.1,2)
             nyaxislimit = 0.0 - yaxislimit
@@ -460,42 +549,33 @@ if filenames != None:
                 rU ='g'
 
             ax[0].set_title(nameCh1)
-            ax[0].grid()
-            Sfin= RS_function(accel1[int(starttime/dtAccel1):int(endtime/dtAccel1)], df, tT, xi, Resp_type = rT)
-            if option =="Accel":
-                S1=Sfin[0,:]*scaleValue(unitsAccel1)
-            else:
-                S1=Sfin[0,:]
-            ax[0].set_ylabel(rL)
-            ax[0].plot(tT,S1,color= 'Red', linewidth=1.0)
-            amax=[tT[np.argmax(abs(S1))], max(abs(S1))]; ax[0].annotate(str(round(amax[0],3)) +"sec, "+str(round(amax[1],2)) + rU , xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
-            ax[0].text(0.97, 0.97, 'Damping=' + str(round(xi,3)), horizontalalignment='right', verticalalignment='top', fontsize=8, color ='Black',transform=ax[0].transAxes)
+            resSpectrafn(accel1,ax[0],rU,rT,0)
+            ax[0].legend()
             
             ax[1].set_title(nameCh2)
-            ax[1].grid()
-            Sfin= RS_function(accel2[int(starttime/2):int(endtime/dtAccel2)], df, tT, xi, Resp_type = rT)
-            if option =="Accel":
-                S2=Sfin[0,:]*scaleValue(unitsAccel2)
-            else:
-                S2=Sfin[0,:]
-            ax[1].set_ylabel(rL)
-            ax[1].plot(tT,S2,color= 'Red', linewidth=1.0)
-            amax=[tT[np.argmax(abs(S2))], max(abs(S2))]; ax[1].annotate(str(round(amax[0],3)) +"sec, "+str(round(amax[1],2)) + rU , xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
-            ax[1].text(0.97, 0.97, 'Damping=' + str(round(xi,3)), horizontalalignment='right', verticalalignment='top', fontsize=8, color ='Black',transform=ax[1].transAxes)
+            resSpectrafn(accel2,ax[1],rU,rT,1)
+            ax[1].legend()
 
             ax[2].set_title(nameCh3)
-            ax[2].grid()
-            Sfin= RS_function(accel3[int(starttime/dtAccel3):int(endtime/dtAccel3)], df, tT, xi, Resp_type = rT)
-            if option =="Accel":
-                S3=Sfin[0,:]*scaleValue(unitsAccel1)
-            else:
-                S3=Sfin[0,:]
+            resSpectrafn(accel3,ax[2],rU,rT,2)
             ax[2].set_xlabel('Period (secs)')
-            ax[2].set_ylabel(rL)
-            ax[2].plot(tT,S3,color= 'Red', linewidth=1.0)
-            amax=[tT[np.argmax(abs(S3))], max(abs(S3))]; ax[2].annotate(str(round(amax[0],3)) +"sec, "+str(round(amax[1],2)) + rU , xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
-            ax[2].text(0.97, 0.97, 'Damping=' + str(round(xi,3)), horizontalalignment='right', verticalalignment='top', fontsize=8, color ='Black',transform=ax[2].transAxes)
+            ax[2].legend()
             st.pyplot(fig2)
+
+            respsec2 = st.checkbox("Create Tripartite Spectra")
+            if respsec2:
+                fig3, ax = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height*1.5))
+                ax[0].set_title(nameCh1)
+                resTripSpectrafn(accel1,ax[0])
+                ax[0].legend(loc='upper right')
+                ax[1].set_title(nameCh2)
+                resTripSpectrafn(accel2,ax[1])
+                ax[1].legend(loc='upper right')
+                ax[2].set_title(nameCh3)
+                resTripSpectrafn(accel3,ax[2]) 
+                ax[2].legend(loc='upper right')
+                st.pyplot(fig3)
+
 
 
     st.subheader("Download Accelerations")

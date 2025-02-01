@@ -239,6 +239,7 @@ st.title("Read V2/V2c")
 st.write("V2/V2c are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste")
 st.write("https://www.strongmotioncenter.org/")
 st.write("This app helps read the file and show the recording and create spectra from the recordings")
+st.write("Tripartite Spectra option is also available")
 filenames=st.file_uploader("Upload V2/V2c zip file",type=[ "zip"])
 
 V2c = V2 = False

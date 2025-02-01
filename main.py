@@ -522,7 +522,7 @@ if filenames != None:
         st.subheader("Response Spectra")
         respsec = st.checkbox("Create Response Spectra")
         if respsec:
-            xiStr = st.text_input("Damping values (3)",str("0.0, 0.02, 0.05"))
+            xiStr = st.text_input("Damping values (separate with commas)",str("0.0, 0.02, 0.05"))
             xi =[float(i) for i in xiStr.split(",")]
             endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
             option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)

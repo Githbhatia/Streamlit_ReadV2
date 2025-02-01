@@ -19,7 +19,9 @@ Inputs:
 """
 
 import numpy as np
+import streamlit as st
 
+@st.cache_data
 def RS_function(data, delta, T, xi, Resp_type):
 
     dt = 1/delta 

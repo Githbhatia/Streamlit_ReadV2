@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import zipfile, io
 from itertools import islice
 from RS_function import RS_function
+import math
 
 
 @st.cache_data
@@ -194,6 +195,7 @@ def tripartitegrids(scale,plt,ax,xl,xr):
             ax.plot([t0,t1],[velLimit0,velLimit], linestyle="--", color= 'm',linewidth=0.3)
             if t < 0.95*xr and t > 1.05*xl:
                 ax.annotate(m, xy=(t,v), xytext=(t,v), ha='left', va="top",fontsize=5, color= 'm')
+    return(1)
 
 def resSpectrafn(accel,ax,rU,rT,channel):
     Sfin=[]
@@ -210,6 +212,7 @@ def resSpectrafn(accel,ax,rU,rT,channel):
     ax.grid()
     ax.set_ylabel(rL)
     return(1)
+
 
 def resTripSpectrafn(accel,ax):
     Sfin=[]
@@ -232,14 +235,37 @@ def resTripSpectrafn(accel,ax):
     ax.set_xlim(x_left,x_right)
     return(1)
 
-
+def orbitplotfn():
+    sLoc = int(starttime/dtAccel1); eLoc = int(endtime/dtAccel1)
+    ax.plot(orx[sLoc:eLoc], ory[sLoc:eLoc])
+    rotmaxLoc = np.argmax(np.sqrt(np.square(orx[:])+np.square(ory[:])))
+    resmax = np.sqrt(np.square(orx[rotmaxLoc])+np.square(ory[rotmaxLoc]))
+    resAngle = np.arctan2(orx[rotmaxLoc],ory[rotmaxLoc])
+    # print(rotmaxLoc,resAccelmax, xa[rotmaxLoc]*np.cos(resAngle)+ya[rotmaxLoc]*np.sin(resAngle) )
+    ax.plot([0,orx[rotmaxLoc]], [0, ory[rotmaxLoc]], color='red',linewidth=2.0 )
+    ax.annotate(str(round(resmax,3)) + "@ " +str(round(resAngle*180/math.pi,2))+ "$^\circ$", xy=(orx[rotmaxLoc], ory[rotmaxLoc]), xytext=(orx[rotmaxLoc], ory[rotmaxLoc]), fontsize=10, color= 'Blue')
+    ax.set_xlabel(xRec + ' ' + rT); ax.set_ylabel(yRec + ' ' + rT)
+    maxLimit = max(np.max(orx[sLoc:eLoc]), np.max(ory[sLoc:eLoc]),np.abs(np.min(orx[sLoc:eLoc])),np.abs(np.min(ory[sLoc:eLoc])))/0.95
+    ax.set_xlim(-maxLimit, maxLimit)
+    ax.set_ylim(-maxLimit, maxLimit)
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high)))
+    xlabel=ax.get_xticks()
+    zind = np.where(xlabel == 0)[0][0]
+    for i in range(zind,len(xlabel)):
+        cr = plt.Circle((0, 0), xlabel[i], linestyle="--", color= 'k',linewidth=0.3, fill=False)
+        ax.add_patch(cr)
+    ax.grid()
+    return(1)
 
 # Title
-st.title("Read V2/V2c")
-st.write("V2/V2c are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste")
+
+st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
+st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download one free-field record at a time and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")
 st.write("This app helps read the file and show the recording and create spectra from the recordings")
-st.write("Tripartite Spectra option is also available")
+st.write("Orbit plots and Tripartite Spectra options are included.")
 filenames=st.file_uploader("Upload V2/V2c zip file",type=[ "zip"])
 
 V2c = V2 = False
@@ -519,6 +545,83 @@ if filenames != None:
         amin=minaccel(yV3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
         st.pyplot(fig)
 
+        st.subheader("Orbit Plots")
+        orbitplot = st.checkbox("Create Orbit Plots")
+        if orbitplot:
+            ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
+
+
+            if "Up" in nameCh1 or "HNZ" in nameCh1:
+                if "360" in nameCh2 or "180" in nameCh2:
+                    xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
+                    xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
+                    x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
+                    xRec=nameCh3;yRec=nameCh2;zRec=nameCh1
+                else:
+                    xa = scaledAccel2.copy(); ya = scaledAccel3.copy(); za = scaledAccel1.copy()
+                    xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
+                    x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
+                    xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
+            elif "Up" in nameCh2 or "HNZ" in nameCh2:
+                if "360" in nameCh1 or "180" in nameCh1:
+                    xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
+                    xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
+                    x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
+                    xRec=nameCh3;yRec=nameCh1;zRec=nameCh2
+                else:
+                    xa = scaledAccel1.copy(); ya = scaledAccel3.copy(); za = scaledAccel2.copy()
+                    xv = vel1.copy(); yv = vel3.copy(); zv = vel2.copy()
+                    x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
+                    xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
+
+            elif "Up" in nameCh3 or "HNZ" in nameCh3:
+                if "360" in nameCh1 or "180" in nameCh1:
+                    xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
+                    xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
+                    x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
+                    xRec=nameCh2;yRec=nameCh1;zRec=nameCh3
+                else:
+                    xa = scaledAccel1.copy(); ya = scaledAccel2.copy(); za = scaledAccel3.copy()
+                    xv = vel1.copy(); yv = vel2.copy(); zv = vel3.copy()
+                    x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
+                    xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
+            
+            if "360" in yRec:
+                yRec = yRec.replace("360 Deg", "NS")
+            elif "180" in yRec:
+                ya[1,:]=[i*-1 for i in ya[1,:]]
+                yv[1,:]=[i*-1 for i in yv[1,:]]
+                y[1,:]=[i*-1 for i in y[1,:]]
+                yRec = yRec.replace("180 Deg", "NS")
+            
+            if "90" in xRec:
+                xRec = xRec.replace("90 Deg", "EW")
+            elif "270" in xRec:
+                xa[:]=[i*-1 for i in xa[:]]
+                xv[:]=[i*-1 for i in xv[:]]
+                x[:]=[i*-1 for i in x[:]]
+                xRec = xRec.replace("270 Deg", "EW")
+            
+            if ooption =="Disp":
+                rT='Disp (cm)'
+                yV = displ1
+                orx = x; ory = y
+            elif ooption =="Vel":
+                rT ='Vel (cm/sec)'
+                yV = vel1
+                orx = xv; ory = yv
+            else:
+                rT ='Accel (g)'
+                yV = scaledAccel1
+                orx = xa; ory = ya
+
+            fig4, ax = plt.subplots(1,1,figsize=(width, width))
+            ax.set_title("Orbit plot for " + ooption)
+            orbitplotfn()
+            st.pyplot(fig4)
+            st.write('Note: Orbit plots can be misleading - points on the curves are resultant at a given time but are not the maximum resultant in that direction')
+
+
 
         st.subheader("Response Spectra")
         respsec = st.checkbox("Create Response Spectra")
@@ -599,5 +702,3 @@ if filenames != None:
             if rch1 or rch2 or rch3:
                 text_contents = rsaveFile()
                 st.download_button("Save Response Spectra file", text_contents)
-
-

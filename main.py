@@ -243,7 +243,7 @@ def orbitplotfn():
     resAngle = np.arctan2(orx[rotmaxLoc],ory[rotmaxLoc])
     # print(rotmaxLoc,resAccelmax, xa[rotmaxLoc]*np.cos(resAngle)+ya[rotmaxLoc]*np.sin(resAngle) )
     ax.plot([0,orx[rotmaxLoc]], [0, ory[rotmaxLoc]], color='red',linewidth=2.0 )
-    ax.annotate(str(round(resmax,3)) + "@ " +str(round(resAngle*180/math.pi,2))+ "$^\circ$", xy=(orx[rotmaxLoc], ory[rotmaxLoc]), xytext=(orx[rotmaxLoc], ory[rotmaxLoc]), fontsize=10, color= 'Blue')
+    ax.annotate(str(round(resmax,3)) + "@ " +str(round(resAngle*180/math.pi,2))+ r"$^\circ$", xy=(orx[rotmaxLoc], ory[rotmaxLoc]), xytext=(orx[rotmaxLoc], ory[rotmaxLoc]), fontsize=10, color= 'Blue')
     ax.set_xlabel(xRec + ' ' + rT); ax.set_ylabel(yRec + ' ' + rT)
     maxLimit = max(np.max(orx[sLoc:eLoc]), np.max(ory[sLoc:eLoc]),np.abs(np.min(orx[sLoc:eLoc])),np.abs(np.min(ory[sLoc:eLoc])))/0.95
     ax.set_xlim(-maxLimit, maxLimit)
@@ -257,6 +257,47 @@ def orbitplotfn():
         cr = plt.Circle((0, 0), xlabel[i], linestyle="--", color= 'k',linewidth=0.3, fill=False)
         ax.add_patch(cr)
     ax.grid()
+    return(1)
+
+def adrs(accel,ax):
+    Sfin= RS_function(accel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, dampoption, Resp_type = 'PSASD')
+    S=Sfin[0,:]*scaleValue(unitsAccel1)
+    area= round(np.trapezoid(Sfin[0,:],Sfin[1,:])/10000,2)
+    ax.set_xlabel('Peak D (cm)')
+    ax.set_ylabel('Peak PSA (g)')
+    ax.plot(Sfin[1,:],S,color= 'Red', linewidth=1.0)
+    SfinClosed = np.append(np.insert(Sfin[1,:],0,0.0),0.0)
+    SClosed = np.append(np.insert(S,0,0.0),0.0)
+    ax.fill(SfinClosed,SClosed, "r", alpha=0.5)
+    x_left, x_right = ax.get_xlim()
+    y_low, y_high = ax.get_ylim()
+    ax.set_aspect(abs((x_right-x_left)/(y_low-y_high)))
+    radialPeriods(1/scaleValue(unitsAccel1), ax)
+    ax.text(x_right/3, y_high/3, str(area) + r"$(m/s)^2$", horizontalalignment='center', fontsize=10, color ='Blue')
+    ax.text(0.97, 0.97, 'Damping=' + str(round(dampoption,3)), horizontalalignment='right', verticalalignment='top', fontsize=6, color ='Black',transform=ax.transAxes)
+    return(1)
+
+def radialPeriods(scale, ax):
+    periodSeries = np.concatenate(( np.arange(0.1,1.0,0.1) , np.arange(1.0,2.0,0.5), np.arange(2.0,5.0,1) ))
+    #print(periodSeries)
+
+    dispLimit, AccelLimit = ax.transData.inverted().transform(ax.transAxes.transform((0.95,0.95)))
+
+    w = 2*np.pi/periodSeries
+    w2 = np.square(w)
+    a1 = dispLimit*w2/scale
+    d1 = a1*scale/w2
+    d2 = AccelLimit*scale/w2
+    a2 = d2*w2/scale
+
+    for i, items in enumerate(d1):
+        if a1[i] < AccelLimit:
+            ax.plot([0, d1[i]],[0, a1[i]], linestyle="--", color= 'Blue',linewidth=0.4)
+            ax.annotate(round(periodSeries[i],1), xy=(d1[i], a1[i]), xytext=(d1[i], a1[i]), fontsize=5, color= 'Blue')
+        else:
+            ax.plot([0, d2[i]],[0, a2[i]], linestyle="--", color= 'Blue',linewidth=0.4)
+            ax.annotate(round(periodSeries[i],1), xy=(d2[i], a2[i]), xytext=(d2[i], a2[i]), fontsize=5, color = 'Blue')
+
     return(1)
 
 # Title
@@ -624,15 +665,16 @@ if filenames != None:
 
 
         st.subheader("Response Spectra")
+        xiStr = st.text_input("Damping values (separate with commas)",str("0.0, 0.02, 0.05"))
+        xi =[float(i) for i in xiStr.split(",")]
+        endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
+        option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)
+        tT = np.concatenate( (np.arange(0.05, 0.1, 0.005) , np.arange (0.1, 0.5, 0.01) , np.arange (0.5, 1, 0.02) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
+        freq = 1/tT # Frequenxy vector
+        df = 1.0/dtAccel1
+        
         respsec = st.checkbox("Create Response Spectra")
         if respsec:
-            xiStr = st.text_input("Damping values (separate with commas)",str("0.0, 0.02, 0.05"))
-            xi =[float(i) for i in xiStr.split(",")]
-            endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
-            option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)
-            tT = np.concatenate( (np.arange(0.05, 0.1, 0.005) , np.arange (0.1, 0.5, 0.01) , np.arange (0.5, 1, 0.02) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
-            freq = 1/tT # Frequenxy vector
-            df = 1.0/dtAccel1
             sAll = np.zeros((3,len(xi),len(tT)))
 
             yaxislimit = round(accelim(scaledAccel1, scaledAccel2, scaledAccel3)*1.1,2)
@@ -666,19 +708,29 @@ if filenames != None:
             ax[2].legend()
             st.pyplot(fig2)
 
-            respsec2 = st.checkbox("Create Tripartite Spectra")
-            if respsec2:
-                fig3, ax = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height*1.5))
-                ax[0].set_title(nameCh1)
-                resTripSpectrafn(accel1,ax[0])
-                ax[0].legend(loc='upper right')
-                ax[1].set_title(nameCh2)
-                resTripSpectrafn(accel2,ax[1])
-                ax[1].legend(loc='upper right')
-                ax[2].set_title(nameCh3)
-                resTripSpectrafn(accel3,ax[2]) 
-                ax[2].legend(loc='upper right')
-                st.pyplot(fig3)
+        respec3 = st.checkbox("Create PSA vs Disp Spectra")
+        if respec3:
+            deflt = int(len(xi)/2)
+            dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt)
+            fig5, ax = plt.subplots(1,3,figsize=(width, height))
+            adrs(accel1, ax[0])
+            adrs(accel2, ax[1])
+            adrs(accel3, ax[2])
+            st.pyplot(fig5)
+
+        respsec2 = st.checkbox("Create Tripartite Spectra")
+        if respsec2:
+            fig3, ax = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height*1.5))
+            ax[0].set_title(nameCh1)
+            resTripSpectrafn(accel1,ax[0])
+            ax[0].legend(loc='upper right')
+            ax[1].set_title(nameCh2)
+            resTripSpectrafn(accel2,ax[1])
+            ax[1].legend(loc='upper right')
+            ax[2].set_title(nameCh3)
+            resTripSpectrafn(accel3,ax[2]) 
+            ax[2].legend(loc='upper right')
+            st.pyplot(fig3)
 
 
 

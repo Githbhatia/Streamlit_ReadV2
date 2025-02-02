@@ -264,7 +264,7 @@ def adrs(accel,ax):
     S=Sfin[0,:]*scaleValue(unitsAccel1)
     area= round(np.trapezoid(Sfin[0,:],Sfin[1,:])/10000,2)
     ax.set_xlabel('Peak D (cm)')
-    ax.set_ylabel('Peak PSA (g)')
+
     ax.plot(Sfin[1,:],S,color= 'Red', linewidth=1.0)
     SfinClosed = np.append(np.insert(Sfin[1,:],0,0.0),0.0)
     SClosed = np.append(np.insert(S,0,0.0),0.0)
@@ -713,8 +713,12 @@ if filenames != None:
             deflt = int(len(xi)/2)
             dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt)
             fig5, ax = plt.subplots(1,3,figsize=(width, height))
+            ax[0].set_title(nameCh1)
             adrs(accel1, ax[0])
+            ax[0].set_ylabel('Peak PSA (g)')
+            ax[1].set_title(nameCh2)
             adrs(accel2, ax[1])
+            ax[2].set_title(nameCh3)
             adrs(accel3, ax[2])
             st.pyplot(fig5)
 

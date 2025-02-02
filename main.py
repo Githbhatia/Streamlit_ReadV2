@@ -99,11 +99,11 @@ def saveFile():
     j=0
     textstring += "Time(sec)"
     if wch1:
-        textstring += ", " + nameCh1.replace(" ", "_")
+        textstring += ", " + nameCh1.replace(",","_").replace(" ", "_")
     if wch2:
-        textstring += ", " + nameCh2.replace(" ", "_")
+        textstring += ", " + nameCh2.replace(",","_").replace(" ", "_")
     if wch3:
-        textstring += ", " + nameCh3.replace(" ", "_")
+        textstring += ", " + nameCh3.replace(",","_").replace(" ", "_")
     textstring += "\n"
     index = len(T1)
     while j < index:
@@ -125,11 +125,11 @@ def rsaveFile():
     i = 0
     while i < len(xi):
         if rch1:
-            textstring += ", " + nameCh1.replace(" ", "_") + "_" + str(round(xi[i],3))
+            textstring += ", " + nameCh1.replace(",","_").replace(" ", "_") + "_" + str(round(xi[i],3))
         if rch2:
-            textstring += ", " + nameCh2.replace(" ", "_") + "_" + str(round(xi[i],3))
+            textstring += ", " + nameCh2.replace(",","_").replace(" ", "_") + "_" + str(round(xi[i],3))
         if rch3:
-            textstring += ", " + nameCh3.replace(" ", "_") + "_" + str(round(xi[i],3))
+            textstring += ", " + nameCh3.replace(",","_").replace(" ", "_") + "_" + str(round(xi[i],3))
         i+=1
     textstring += "\n"
     index = len(tT)
@@ -522,6 +522,7 @@ if filenames != None:
     
 
     st.header(recTime)
+    st.link_button("See location of instrument on a map", 'http://www.google.com/maps/place/'+ str(latitude) +','+str(longitude)+'/@'+ str(latitude) +','+str(longitude)+',12z')
     starttime = float(st.text_input("Start Time",str(startlimAccel())))
     endtime = float(st.text_input("End Time",str(endlimAccel())))
     st.subheader("Recorded Values")
@@ -747,7 +748,7 @@ if filenames != None:
         wch3 = st.checkbox("Download Acceleration " + nameCh3)
     if wch1 or wch2 or wch3:
         text_contents = saveFile()
-        st.download_button("Save Acceleration file", text_contents)
+        st.download_button("Save Acceleration file", text_contents, file_name="accelerations.csv",mime="text/csv",)
 
     if EOF != 1:
         if respsec:
@@ -757,4 +758,4 @@ if filenames != None:
             rch3 = st.checkbox("Download Spectrum " + nameCh3)
             if rch1 or rch2 or rch3:
                 text_contents = rsaveFile()
-                st.download_button("Save Response Spectra file", text_contents)
+                st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)

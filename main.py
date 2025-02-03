@@ -523,9 +523,12 @@ if filenames != None:
 
     st.header(recTime)
     st.link_button("See location of instrument on a map", 'http://www.google.com/maps/place/'+ str(latitude) +','+str(longitude)+'/@'+ str(latitude) +','+str(longitude)+',12z')
-    starttime = float(st.text_input("Start Time",str(startlimAccel())))
-    endtime = float(st.text_input("End Time",str(endlimAccel())))
+
     st.subheader("Recorded Values")
+    
+    values = st.sidebar.slider("Select range of times to use", 0.0, dtAccel1*numofPointsAccel1, (startlimAccel(), endlimAccel()), step= 0.1)
+    st.sidebar.caption("*Range autoselected using a trigger of 0.005g")
+    starttime, endtime = values
     width = st.sidebar.slider("plot width", 1, 25, 10)
     height = st.sidebar.slider("plot height", 1, 10, 8)
     doption = st.selectbox("Plot",("Accel", "Vel", "Disp"),)

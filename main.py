@@ -300,6 +300,65 @@ def radialPeriods(scale, ax):
 
     return(1)
 
+def absmaxND(a):
+    amax = np.max(a)
+    amin = np.min(a)
+    return np.where(-amin > amax, -amin, amax)
+
+def rotD50(ax, d2):
+    tT = np.concatenate( (np.arange(0.05, 0.1, 0.01) , np.arange (0.1, 0.5, 0.05) , np.arange (0.5, 1, 0.05) , np.arange (1, endPeriod, 0.1) ) ) # Time vector for the spectral response
+    freq = 1/tT # Frequenxy vector
+    df = 1.0/dtAccel1
+    Sfin=[]
+    rotmax = np.zeros((180,len(tT)))
+    rotmaxlimit = np.zeros((360,2))
+    placeholder2 = st.empty()
+    for i in range(0,180,1):
+        placeholder2.write("Computing Azimute angle " + str(i) + " of 180")
+        resAngle = i/180.0 * np.pi
+        resAccel = np.zeros((len(xa[:])))
+        resAccel = (np.array(xa)*np.cos(resAngle)+np.array(ya)*np.sin(resAngle))
+        # rotmaxlimit[i,:] = absmaxND(resAccel)*np.cos(resAngle), absmaxND(resAccel)*np.sin(resAngle)
+        # rotmaxlimit[i+180,:] = -absmaxND(resAccel)*np.cos(resAngle), -absmaxND(resAccel)*np.sin(resAngle)
+        Sfin= RS_function(resAccel[int(starttime/dtAccel1):int(endtime/dtAccel1)], df, tT, d2, Resp_type = 'SA')
+        rotmax[i,:]= Sfin[0,:]
+    placeholder2.write("Computations Completed")
+    
+    rotD50Spec = np.zeros((len(tT)));rotD100Spec = np.zeros((len(tT)));rotD00Spec = np.zeros((len(tT)))
+    for i in range(0,len(tT),1):
+        rotD50Spec[i] = np.median(rotmax[:,i])
+        rotD100Spec[i] = np.max(rotmax[:,i])
+        rotD00Spec[i] = np.min(rotmax[:,i])
+
+    Sfin1= RS_function(xa[int(starttime/dtAccel1):int(endtime/dtAccel1)], df, tT, d2, Resp_type = 'SA')
+    Sfin2= RS_function(ya[int(starttime/dtAccel1):int(endtime/dtAccel1)], df, tT, d2, Resp_type = 'SA')
+    geomeanSpectra = np.sqrt(np.array(Sfin1[0,:])*np.array(Sfin2[0,:]))
+
+    ax.set_xlabel('Period (secs)')
+    ax.set_ylabel('SA (g)')
+    ax.plot(tT,rotD50Spec,color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
+    ax.plot(tT,rotD100Spec,color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
+    ax.plot(tT,rotD00Spec,color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
+    ax.plot(tT,geomeanSpectra[:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
+    plt.legend(loc="center right",fontsize = 'x-small')
+    ax.text(0.97, 0.97, 'Damping=' + str(round(d2,3)), horizontalalignment='right', verticalalignment='top', fontsize=6, color ='Black',transform=ax.transAxes)
+    textstring=""
+    j=0
+    textstring += "Time_Period(sec)"
+    textstring += ", " + "RotD50" + "_" + str(round(d2,3))
+    textstring += ", " + "Geomean" + "_" + str(round(d2,3))
+    textstring += "\n"
+    index = len(tT)
+    while j < index:
+        textstring += str(round(tT[j],3))
+        textstring += ", " + str(rotD50Spec[j]) 
+        textstring += ", " + str(geomeanSpectra[j]) 
+        textstring += "\n"
+        j+= 1
+    return (textstring)
+
+
+
 # Title
 
 st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
@@ -590,62 +649,74 @@ if filenames != None:
         amin=minaccel(yV3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
         st.pyplot(fig)
 
+        st.write("Download Accelerations")
+        wch1 = st.checkbox("Download Acceleration " + nameCh1)
+        if EOF == 1:
+            wch2 = wch3 = False
+        else:
+            wch2 = st.checkbox("Download Accelertaion " + nameCh2)
+            wch3 = st.checkbox("Download Acceleration " + nameCh3)
+        if wch1 or wch2 or wch3:
+            text_contents = saveFile()
+            st.download_button("Save Acceleration file", text_contents, file_name="accelerations.csv",mime="text/csv",)
+        st.divider()
+
+
+        if "Up" in nameCh1 or "HNZ" in nameCh1:
+            if "360" in nameCh2 or "180" in nameCh2:
+                xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
+                xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
+                x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
+                xRec=nameCh3;yRec=nameCh2;zRec=nameCh1
+            else:
+                xa = scaledAccel2.copy(); ya = scaledAccel3.copy(); za = scaledAccel1.copy()
+                xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
+                x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
+                xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
+        elif "Up" in nameCh2 or "HNZ" in nameCh2:
+            if "360" in nameCh1 or "180" in nameCh1:
+                xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
+                xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
+                x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
+                xRec=nameCh3;yRec=nameCh1;zRec=nameCh2
+            else:
+                xa = scaledAccel1.copy(); ya = scaledAccel3.copy(); za = scaledAccel2.copy()
+                xv = vel1.copy(); yv = vel3.copy(); zv = vel2.copy()
+                x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
+                xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
+
+        elif "Up" in nameCh3 or "HNZ" in nameCh3:
+            if "360" in nameCh1 or "180" in nameCh1:
+                xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
+                xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
+                x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
+                xRec=nameCh2;yRec=nameCh1;zRec=nameCh3
+            else:
+                xa = scaledAccel1.copy(); ya = scaledAccel2.copy(); za = scaledAccel3.copy()
+                xv = vel1.copy(); yv = vel2.copy(); zv = vel3.copy()
+                x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
+                xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
+        
+        if "360" in yRec:
+            yRec = yRec.replace("360 Deg", "NS")
+        elif "180" in yRec:
+            ya[1,:]=[i*-1 for i in ya[1,:]]
+            yv[1,:]=[i*-1 for i in yv[1,:]]
+            y[1,:]=[i*-1 for i in y[1,:]]
+            yRec = yRec.replace("180 Deg", "NS")
+        
+        if "90" in xRec:
+            xRec = xRec.replace("90 Deg", "EW")
+        elif "270" in xRec:
+            xa[:]=[i*-1 for i in xa[:]]
+            xv[:]=[i*-1 for i in xv[:]]
+            x[:]=[i*-1 for i in x[:]]
+            xRec = xRec.replace("270 Deg", "EW")
+
         st.subheader("Orbit Plots")
         orbitplot = st.checkbox("Create Orbit Plots")
         if orbitplot:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
-
-
-            if "Up" in nameCh1 or "HNZ" in nameCh1:
-                if "360" in nameCh2 or "180" in nameCh2:
-                    xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
-                    xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
-                    x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
-                    xRec=nameCh3;yRec=nameCh2;zRec=nameCh1
-                else:
-                    xa = scaledAccel2.copy(); ya = scaledAccel3.copy(); za = scaledAccel1.copy()
-                    xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
-                    x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
-                    xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
-            elif "Up" in nameCh2 or "HNZ" in nameCh2:
-                if "360" in nameCh1 or "180" in nameCh1:
-                    xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
-                    xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
-                    x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
-                    xRec=nameCh3;yRec=nameCh1;zRec=nameCh2
-                else:
-                    xa = scaledAccel1.copy(); ya = scaledAccel3.copy(); za = scaledAccel2.copy()
-                    xv = vel1.copy(); yv = vel3.copy(); zv = vel2.copy()
-                    x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
-                    xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
-
-            elif "Up" in nameCh3 or "HNZ" in nameCh3:
-                if "360" in nameCh1 or "180" in nameCh1:
-                    xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
-                    xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
-                    x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
-                    xRec=nameCh2;yRec=nameCh1;zRec=nameCh3
-                else:
-                    xa = scaledAccel1.copy(); ya = scaledAccel2.copy(); za = scaledAccel3.copy()
-                    xv = vel1.copy(); yv = vel2.copy(); zv = vel3.copy()
-                    x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
-                    xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
-            
-            if "360" in yRec:
-                yRec = yRec.replace("360 Deg", "NS")
-            elif "180" in yRec:
-                ya[1,:]=[i*-1 for i in ya[1,:]]
-                yv[1,:]=[i*-1 for i in yv[1,:]]
-                y[1,:]=[i*-1 for i in y[1,:]]
-                yRec = yRec.replace("180 Deg", "NS")
-            
-            if "90" in xRec:
-                xRec = xRec.replace("90 Deg", "EW")
-            elif "270" in xRec:
-                xa[:]=[i*-1 for i in xa[:]]
-                xv[:]=[i*-1 for i in xv[:]]
-                x[:]=[i*-1 for i in x[:]]
-                xRec = xRec.replace("270 Deg", "EW")
             
             if ooption =="Disp":
                 rT='Disp (cm)'
@@ -665,8 +736,7 @@ if filenames != None:
             orbitplotfn()
             st.pyplot(fig4)
             st.write('Note: Orbit plots can be misleading - points on the curves are resultant at a given time but are not the maximum resultant in that direction')
-
-
+        st.divider()
 
         st.subheader("Response Spectra")
         xiStr = st.text_input("Damping values (separate with commas)",str("0.0, 0.02, 0.05"))
@@ -711,6 +781,15 @@ if filenames != None:
             ax[2].set_xlabel('Period (secs)')
             ax[2].legend()
             st.pyplot(fig2)
+            if EOF != 1:
+                st.write("Download Response Spectra")
+                rch1 = st.checkbox("Download Spectrum " + nameCh1)
+                rch2 = st.checkbox("Download Spectrum" + nameCh2)
+                rch3 = st.checkbox("Download Spectrum " + nameCh3)
+                if rch1 or rch2 or rch3:
+                    text_contents = rsaveFile()
+                    st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)
+        st.divider()
 
         respec3 = st.checkbox("Create PSA vs Disp Spectra")
         if respec3:
@@ -725,6 +804,7 @@ if filenames != None:
             ax[2].set_title(nameCh3)
             adrs(accel3, ax[2])
             st.pyplot(fig5)
+        st.divider()
 
         respsec2 = st.checkbox("Create Tripartite Spectra")
         if respsec2:
@@ -739,26 +819,21 @@ if filenames != None:
             resTripSpectrafn(accel3,ax[2]) 
             ax[2].legend(loc='upper right')
             st.pyplot(fig3)
+        st.divider()
+
+        rotD50spectra = st.checkbox("Create RotD50 Spectra")
+        if rotD50spectra:
+            deflt = int(len(xi)/2)
+            dampoption2 = st.selectbox("Pick one damping ratio",xi,index=deflt, key =2)
+            fig6, ax = plt.subplots(1,1,figsize=(width, height))
+            ax.grid()
+            text_contents = rotD50(ax, dampoption2)
+            st.pyplot(fig6)
+            st.download_button("Download RotD50 and Geomean Spectra", text_contents, file_name="respspectra.csv",mime="text/csv",)
+        st.divider()
 
 
 
-    st.subheader("Download Accelerations")
-    wch1 = st.checkbox("Download Acceleration " + nameCh1)
-    if EOF == 1:
-        wch2 = wch3 = False
-    else:
-        wch2 = st.checkbox("Download Accelertaion " + nameCh2)
-        wch3 = st.checkbox("Download Acceleration " + nameCh3)
-    if wch1 or wch2 or wch3:
-        text_contents = saveFile()
-        st.download_button("Save Acceleration file", text_contents, file_name="accelerations.csv",mime="text/csv",)
 
-    if EOF != 1:
-        if respsec:
-            st.subheader("Download Response Spectra")
-            rch1 = st.checkbox("Download Spectrum " + nameCh1)
-            rch2 = st.checkbox("Download Spectrum" + nameCh2)
-            rch3 = st.checkbox("Download Spectrum " + nameCh3)
-            if rch1 or rch2 or rch3:
-                text_contents = rsaveFile()
-                st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)
+
+

@@ -67,21 +67,21 @@ def lines(points):
         nLines = int(points/8)+1
     return nLines
 
-def startlimAccel():
-    a1 = next(i for i, x in enumerate(accel1) if abs(x) >5)
+def startlimAccel(z):
+    a1 = next(i for i, x in enumerate(accel1) if abs(x) >z)
     startTime  = max(a1*dtAccel1- 2, 0)
     if EOF==0:
-        a2 = next(i for i, x in enumerate(accel2) if abs(x) >5)
-        a3 = next(i for i, x in enumerate(accel3) if abs(x) >5)
+        a2 = next(i for i, x in enumerate(accel2) if abs(x) >z)
+        a3 = next(i for i, x in enumerate(accel3) if abs(x) >z)
         startTime  = max(min(a1*dtAccel1,a2*dtAccel2,a3*dtAccel3) - 2, 0)
     return round(startTime,2)
 
-def endlimAccel():
-    a1 = next(i for i, x in reversed(list(enumerate(accel1))) if abs(x) >5)
+def endlimAccel(z):
+    a1 = next(i for i, x in reversed(list(enumerate(accel1))) if abs(x) >z)
     endTime  = max(a1*dtAccel1+ 2, 0)
     if EOF==0:
-        a2 = next(i for i, x in reversed(list(enumerate(accel2))) if abs(x) >5)
-        a3 = next(i for i, x in reversed(list(enumerate(accel3))) if abs(x) >5)
+        a2 = next(i for i, x in reversed(list(enumerate(accel2))) if abs(x) >z)
+        a3 = next(i for i, x in reversed(list(enumerate(accel3))) if abs(x) >z)
         endTime  = max(min(a1*dtAccel1,a2*dtAccel2,a3*dtAccel3) +2, 0)
     return round(endTime,2)
 
@@ -533,9 +533,10 @@ if filenames != None:
     with c2:
         st.link_button("See location of instrument in Google Maps", 'http://www.google.com/maps/place/'+ str(latitude) +','+str(longitude)+'/@'+ str(latitude) +','+str(longitude)+',12z')
     st.subheader("Recorded Values")
-    
-    values = st.sidebar.slider("Select range of times to use", 0.0, dtAccel1*numofPointsAccel1, (startlimAccel(), endlimAccel()), step= 0.1)
-    st.sidebar.caption("*Range autoselected using a trigger of 0.005g")
+    trigger = min(abs(max(accel1, key=abs))/10,abs(max(accel2, key=abs))/10,abs(max(accel3, key=abs))/10,5)
+
+    values = st.sidebar.slider("Select range of times to use", 0.0, dtAccel1*numofPointsAccel1, (startlimAccel(trigger), endlimAccel(trigger)), step= 0.1)
+    st.sidebar.caption("*Range autoselected using a trigger of " + str(round(trigger*scaleValue(unitsAccel1),3)) + "g")
     starttime, endtime = values
     width = st.sidebar.slider("plot width", 1, 25, 10)
     height = st.sidebar.slider("plot height", 1, 10, 8)

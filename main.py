@@ -573,7 +573,7 @@ if filenames != None:
             yV1 = vel1; yV2 = vel2; yV3 = vel3
         else:
             rT ='Accel (g)'
-            yV1 = scaledAccel1; yV2 = scaledAccel2; yV3 = scaledAccel2; 
+            yV1 = scaledAccel1; yV2 = scaledAccel2; yV3 = scaledAccel3; 
         ax[2].set_xlabel('Time (secs)')
         ax[0].set_ylabel(rT)
         ax[1].set_ylabel(rT)

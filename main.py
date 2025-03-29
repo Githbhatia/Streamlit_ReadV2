@@ -567,7 +567,7 @@ if filenames != None:
         fig, ax = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
         if doption =="Disp":
             rT='Disp (cm)'
-            yV1 = displ1; yV2 = displ2; yV3 = displ2
+            yV1 = displ1; yV2 = displ2; yV3 = displ3
         elif doption =="Vel":
             rT ='Vel (cm/sec)'
             yV1 = vel1; yV2 = vel2; yV3 = vel3

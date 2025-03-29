@@ -4,4 +4,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 3/17/2025 Absolute trigger for autoranging was failing for earthquake records that have very low accelerations - revised for a dyanmic trigger based on 1/10 maximum absolute value.
 
+3/29/2025 Added new file name scheme used by USGS in records from the Burma Earthquake.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

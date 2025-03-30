@@ -681,10 +681,15 @@ if filenames != None:
 
 
         st.subheader("Response Spectra")
-        xiStr = st.text_input("Damping values (separate with commas)",str("0.0, 0.02, 0.05"))
-        xi =[float(i) for i in xiStr.split(",")]
-        endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
-        option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)
+        tab1, tab2, tab3 = st.tabs(["Type of Spectra", "Damping", "End Period"])
+        with tab1:
+            option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)
+        with tab2:
+            xiStr = st.text_input("Damping values (separate with commas)",str("0.0, 0.02, 0.05"))
+            xi =[float(i) for i in xiStr.split(",")]
+        with tab3:
+            endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
+
         tT = np.concatenate( (np.arange(0.05, 0.1, 0.005) , np.arange (0.1, 0.5, 0.01) , np.arange (0.5, 1, 0.02) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
         freq = 1/tT # Frequenxy vector
         df = 1.0/dtAccel1

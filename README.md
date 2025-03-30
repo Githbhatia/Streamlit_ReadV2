@@ -6,4 +6,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 3/29/2025 Added new file name scheme used by USGS in records from the Burma Earthquake.
 
+3/30/2025 Changed the way v2C files read, added error catching if file names dont match standards.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

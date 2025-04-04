@@ -742,10 +742,15 @@ if filenames != None:
             ax[0].set_title(nameCh1)
             adrs(accel1, ax[0])
             ax[0].set_ylabel('Peak PSA (g)')
+
             ax[1].set_title(nameCh2)
             adrs(accel2, ax[1])
+            ax[1].set_ylabel('Peak PSA (g)')
+
             ax[2].set_title(nameCh3)
             adrs(accel3, ax[2])
+            ax[2].set_ylabel('Peak PSA (g)')
+
             st.pyplot(fig5)
 
         respsec2 = st.checkbox("Create Tripartite Spectra")

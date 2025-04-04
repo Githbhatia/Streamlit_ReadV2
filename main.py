@@ -261,6 +261,7 @@ def orbitplotfn():
     return(1)
 
 def adrs(accel,ax):
+    tT = np.logspace(-2,1,num=200) # Time vector for the spectral response
     Sfin= RS_function(accel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, dampoption, Resp_type = 'PSASD')
     S=Sfin[0,:]*scaleValue(unitsAccel1)
     area= round(np.trapezoid(Sfin[0,:],Sfin[1,:])/10000,2)
@@ -733,7 +734,7 @@ if filenames != None:
         if respec3:
             deflt = int(len(xi)/2)
             dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt)
-            fig5, ax = plt.subplots(1,3,figsize=(width, height))
+            fig5, ax = plt.subplots(3,1,figsize=(width, height*2))
             ax[0].set_title(nameCh1)
             adrs(accel1, ax[0])
             ax[0].set_ylabel('Peak PSA (g)')

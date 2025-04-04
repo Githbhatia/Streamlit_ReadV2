@@ -261,7 +261,7 @@ def orbitplotfn():
     return(1)
 
 def adrs(accel,ax):
-    tT = np.logspace(-2,1,num=200) # Time vector for the spectral response
+    tT = np.logspace(-2,1,num=numpts) # Time vector for the spectral response
     Sfin= RS_function(accel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, dampoption, Resp_type = 'PSASD')
     S=Sfin[0,:]*scaleValue(unitsAccel1)
     area= round(np.trapezoid(Sfin[0,:],Sfin[1,:])/10000,2)
@@ -280,7 +280,7 @@ def adrs(accel,ax):
     return(1)
 
 def radialPeriods(scale, ax):
-    periodSeries = np.concatenate(( np.arange(0.1,1.0,0.1) , np.arange(1.0,2.0,0.5), np.arange(2.0,5.0,1) ))
+    periodSeries = np.concatenate(( np.arange(0.1,1.0,0.1) , np.arange(1.0,2.0,0.5), np.arange(2.0,endPeriod,1) ))
     #print(periodSeries)
 
     dispLimit, AccelLimit = ax.transData.inverted().transform(ax.transAxes.transform((0.95,0.95)))
@@ -733,7 +733,11 @@ if filenames != None:
         respec3 = st.checkbox("Create PSA vs Disp Spectra")
         if respec3:
             deflt = int(len(xi)/2)
-            dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt)
+            cc1,cc2 = st.tabs(["Damping ratio", "Number of points"])
+            with cc1:
+                dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt)
+            with cc2:
+                numpts= int(st.text_input("Number of Points to use",str("100")))
             fig5, ax = plt.subplots(3,1,figsize=(width, height*2))
             ax[0].set_title(nameCh1)
             adrs(accel1, ax[0])

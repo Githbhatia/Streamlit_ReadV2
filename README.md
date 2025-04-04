@@ -8,4 +8,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 3/30/2025 Changed the way v2C files read, added error catching if file names dont match standards.
 
+4/4/2025 Changed ADRS spectra to be a vertical arrangement rather than horizontal to avoid titles overlapping.  Also implemented a logspace interval for spectra.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

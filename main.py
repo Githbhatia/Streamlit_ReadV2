@@ -280,7 +280,7 @@ def adrs(accel,ax):
     return(1)
 
 def radialPeriods(scale, ax):
-    periodSeries = np.concatenate(( np.arange(0.1,1.0,0.1) , np.arange(1.0,2.0,0.5), np.arange(2.0,endPeriod,1) ))
+    periodSeries = np.concatenate(( np.arange(0.1,1.0,0.1) , np.arange(1.0,2.0,0.5), np.arange(2.0,endPeriod+1,1) ))
     #print(periodSeries)
 
     dispLimit, AccelLimit = ax.transData.inverted().transform(ax.transAxes.transform((0.95,0.95)))
@@ -315,6 +315,7 @@ V2c = V2 = False
 f= None
 f_all=[];f_name=[]
 stationNo = 0
+placeholder = st.empty()
 if filenames != None:
     if filenames.name[-4:]==".zip":
         archive = zipfile.ZipFile(filenames, 'r')
@@ -355,7 +356,7 @@ if filenames != None:
         st.write('Error', 'V2 File not selected, exiting')
         exit()
     EOF =0
-    placeholder = st.empty()
+    
     if V2c:
         EOF = 0
         for index,vfl in enumerate(f_name):
@@ -390,7 +391,7 @@ if filenames != None:
             else:
                 st.write("Error", "File not recognized, exiting")
                 exit()
-        placeholder.write("Completed reading V2c files")
+        placeholder.badge("Completed reading V2c files", icon=":material/check:", color="green")
         unitsAccel1 = unitsAccel2 = unitsAccel3 = "cm/sec2"
         unitsVel1 = unitsVel2 = unitsVel3 = "cm/sec"
         unitsDispl1 = unitsDispl2 = unitsDispl3 = "cm"
@@ -511,6 +512,7 @@ if filenames != None:
             numofLines = lines(numofPointsDispl3)
             displ3 = readchunk(f,numofLines)  
         f.close()
+        placeholder.badge("Completed reading V2 file", icon=":material/check:", color="green")
 
 
     
@@ -526,7 +528,7 @@ if filenames != None:
         scale = scaleValue(unitsAccel3)  
         scaledAccel3 = [value*scale for value in accel3]
     
-
+    st.logo("HXBLogo.png", size="large")
     st.header(recTime)
     df = pd.DataFrame({"lat":[float(latitude)], "lon":[float(longitude)]})
     st.map(df)   

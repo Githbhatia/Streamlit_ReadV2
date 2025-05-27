@@ -10,4 +10,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 4/4/2025 Changed ADRS spectra to be a vertical arrangement rather than horizontal to avoid titles overlapping.  Also implemented a logspace interval for spectra.
 
+5/26/2025 Added ROTD50 spectra and associated ASI computation (with polar gragh plotted against azimuth angles).
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

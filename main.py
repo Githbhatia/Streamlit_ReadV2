@@ -301,6 +301,153 @@ def radialPeriods(scale, ax):
             ax.annotate(round(periodSeries[i],1), xy=(d2[i], a2[i]), xytext=(d2[i], a2[i]), fontsize=5, color = 'Blue')
 
     return(1)
+def absmaxND(a):
+    amax = np.max(a)
+    amin = np.min(a)
+    return np.where(-amin > amax, -amin, amax)
+
+def argmedian(x):
+  return np.argpartition(x, len(x) // 2)[len(x) // 2]
+
+def on_clickRotD50(ax, xi):
+    #%% Parameters of the response spectra
+
+    horRec=np.zeros((2,len(scaledAccel1)))
+    res = st.button("This is a computational intensive process \nand will take some time (3 to 10 mins)\nContinue?")
+    placeholder2 = st.empty()
+    if res:
+        if "Up" in nameCh1 or "HNZ" in nameCh1:
+            if "360" in nameCh2 or "180" in nameCh2 or "HNN" in nameCh2:
+                horRec[0,:] = scaledAccel3.copy()
+                horRec[1,:] = scaledAccel2.copy()
+                horRec1=nameCh3;horRec2=nameCh2
+            else:
+                horRec[0,:] = scaledAccel2.copy()
+                horRec[1,:] = scaledAccel3.copy()
+                horRec1=nameCh2;horRec2=nameCh3
+
+        elif "Up" in nameCh2 or "HNZ" in nameCh2:
+            if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
+                horRec[0,:] = scaledAccel3.copy()
+                horRec[1,:] = scaledAccel1.copy()
+                horRec1=nameCh3;horRec2=nameCh1
+            else:
+                horRec[0,:] = scaledAccel1.copy()
+                horRec[1,:] = scaledAccel3.copy()
+                horRec1=nameCh1;horRec2=nameCh3
+
+        elif "Up" in nameCh3 or "HNZ" in nameCh3:
+            if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
+                horRec[0,:] = scaledAccel2.copy()
+                horRec[1,:] = scaledAccel1.copy()
+                horRec1=nameCh2;horRec2=nameCh1
+            else:
+                horRec[0,:] = scaledAccel1.copy()
+                horRec[1,:] = scaledAccel2.copy()
+                horRec1=nameCh1;horRec2=nameCh2
+        
+        if "360" in horRec2 or "HNN" in horRec2:
+            horRec2 = horRec2.replace("360 Deg", "NS")
+        elif "180" in horRec2:
+            horRec[1,:]=[x*-1 for x in horRec[1,:]]
+            horRec2 = horRec2.replace("180 Deg", "NS")
+        
+        if "90" in horRec1 or "HNE" in horRec1:
+            horRec1 = horRec1.replace("90 Deg", "EW")
+        elif "270" in horRec1:
+            horRec[0,:]=[x*-1 for x in horRec[0,:]]
+            horRec1 = horRec1.replace("270 Deg", "EW")
+
+
+
+
+        tT = np.concatenate( (np.arange(0.05, 0.1, 0.01) , np.arange (0.1, 0.5, 0.05) , np.arange (0.5, 1, 0.05) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
+        freq = 1/tT # Frequenxy vector
+        df = 1.0/dtAccel1
+        Sfin=[]
+        L01 = np.where(tT == 0.1)[0][0]
+        L05 = np.where(tT == 0.5)[0][0] + 1
+        rotmax = np.zeros((180,len(tT)))
+        ASI = np.zeros((360))
+        Azimuth = np.zeros((360))
+        # rotmaxlimit = np.zeros((360,2))
+
+        for i in range(0,180,1):
+            if (i % 10) == 0:
+                placeholder2.write("Getting spectra for angle " + str(i))
+            resAngle = i/180.0 * np.pi
+            resAccel = np.zeros((len(horRec[0,:])))
+            resAccel = (horRec[0,:]*np.cos(resAngle)+horRec[1,:]*np.sin(resAngle))
+            # rotmaxlimit[i,:] = absmaxND(resAccel)*np.cos(resAngle), absmaxND(resAccel)*np.sin(resAngle)
+            # rotmaxlimit[i+180,:] = -absmaxND(resAccel)*np.cos(resAngle), -absmaxND(resAccel)*np.sin(resAngle)
+            Sfin= RS_function(resAccel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'SA')
+            rotmax[i,:]= Sfin[0,:]
+            ASI[i] = round(np.trapezoid(Sfin[0,:][L01:L05],tT[L01:L05]),3)
+            ASI[i+180] = ASI[i]
+            Az = 450 - i
+            if Az >= 360:
+                Az = Az - 360
+            Azimuth[i] = Az; Azimuth[i+180] = 180 + Az
+
+        placeholder2.write("Completed getting spectra for all angles")
+        rotD50Spec = np.zeros((len(tT)));rotD100Spec = np.zeros((len(tT)));rotD00Spec = np.zeros((len(tT)))
+        
+        for i in range(0,len(tT),1):
+            rotD50Spec[i] = np.median(rotmax[:,i])
+            rotD100Spec[i] = np.max(rotmax[:,i])
+            rotD00Spec[i] = np.min(rotmax[:,i])
+
+
+
+        Sfin1= RS_function(horRec[0,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'SA')
+        Sfin2= RS_function(horRec[1,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'SA')
+        geomeanSpectra = np.sqrt(np.array(Sfin1[0:])*np.array(Sfin2[0,:]))
+        ax.set_xlabel('Period (secs)')
+        ax.set_ylabel('SA (g)')
+        ax.plot(tT,rotD50Spec,color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
+        ax.plot(tT,rotD100Spec,color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
+        ax.plot(tT,rotD00Spec,color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
+        ax.plot(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
+
+        plt.legend(loc="center right",fontsize = 'x-small')
+        ax.text(0.97, 0.97, 'Damping=' + str(round(xi,3)), horizontalalignment='right', verticalalignment='top', fontsize=6, color ='Black',transform=ax.transAxes)
+        ax.grid()
+        st.pyplot(fig6)
+        
+
+        ASIRotD00 = round(np.trapezoid(rotD00Spec[L01:L05],tT[L01:L05]),3)  
+        ASIRotD50 = round(np.trapezoid(rotD50Spec[L01:L05],tT[L01:L05]),3)
+        ASIRotD100 = round(np.trapezoid(rotD100Spec[L01:L05],tT[L01:L05]),3)
+        # st.write("ASI RotD00 = " + str(ASIRotD00) + " (g-seconds)")
+        # st.write("ASI RotD50 = " + str(ASIRotD50) + " (g-seconds)")
+        # st.write("ASI RotD100 = " + str(ASIRotD100) + " (g-seconds)")
+
+
+        ASIRotD50A = np.full((360), ASIRotD50)
+        ASIRotD00A = np.full((360), ASIRotD00)
+        ASIRotD100A = np.full((360), ASIRotD100)
+
+        Azimuthpi = 2 * np.pi * Azimuth / 360
+        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.set_theta_zero_location("N")  # theta=0 at the top
+        ax.set_theta_direction(-1)
+        ax.plot(Azimuthpi, ASI, label='ASI')
+        ax.plot(Azimuthpi, ASIRotD50A, linestyle='--', color='red', label='RotD50 ASI')
+        ax.plot(Azimuthpi, ASIRotD00A, linestyle='-.', color='blue', label='RotD00 ASI')
+        ax.plot(Azimuthpi, ASIRotD100A, linestyle=':', color='green', label='RotD100 ASI')
+        ax.set_xticks(np.arange(0, 2.0 * np.pi, np.pi / 6))
+
+        ax.grid(True)
+        fig.legend (loc='outside upper right', fontsize='small')
+        fig.suptitle('Acceleration Spectrum Intensity (g-seconds)*', fontsize=10)
+        ax.annotate('*Plotted against azimuth angles (NS = 0 or 360/180 Deg, EW = 90/270 Deg)',
+            xy = (1.2, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            fontsize=6)
+        st.pyplot(fig)
+
 
 # Title
 
@@ -612,7 +759,7 @@ if filenames != None:
 
 
             if "Up" in nameCh1 or "HNZ" in nameCh1:
-                if "360" in nameCh2 or "180" in nameCh2:
+                if "360" in nameCh2 or "180" in nameCh2 or "HNN" in nameCh2:
                     xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
                     xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
                     x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
@@ -622,8 +769,8 @@ if filenames != None:
                     xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
                     x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
                     xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
-            elif "Up" in nameCh2 or "HNZ" in nameCh2:
-                if "360" in nameCh1 or "180" in nameCh1:
+            elif "Up" in nameCh2 or "HNZ" in nameCh2 :
+                if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
                     xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
                     xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
                     x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
@@ -635,7 +782,7 @@ if filenames != None:
                     xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
             elif "Up" in nameCh3 or "HNZ" in nameCh3:
-                if "360" in nameCh1 or "180" in nameCh1:
+                if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
                     xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
                     xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
                     x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
@@ -646,7 +793,7 @@ if filenames != None:
                     x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
                     xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
             
-            if "360" in yRec:
+            if "360" in yRec or "HNN" in yRec:  
                 yRec = yRec.replace("360 Deg", "NS")
             elif "180" in yRec:
                 ya[1,:]=[i*-1 for i in ya[1,:]]
@@ -654,7 +801,7 @@ if filenames != None:
                 y[1,:]=[i*-1 for i in y[1,:]]
                 yRec = yRec.replace("180 Deg", "NS")
             
-            if "90" in xRec:
+            if "90" in xRec or "HNE" in xRec:
                 xRec = xRec.replace("90 Deg", "EW")
             elif "270" in xRec:
                 xa[:]=[i*-1 for i in xa[:]]
@@ -688,7 +835,7 @@ if filenames != None:
         with tab1:
             option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)
         with tab2:
-            xiStr = st.text_input("Damping values (separate with commas)",str("0.0, 0.02, 0.05"))
+            xiStr = st.text_input("Damping values (separate with commas)",str("0.02, 0.05, 0.07"))
             xi =[float(i) for i in xiStr.split(",")]
         with tab3:
             endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
@@ -768,6 +915,15 @@ if filenames != None:
             resTripSpectrafn(accel3,ax[2]) 
             ax[2].legend(loc='upper right')
             st.pyplot(fig3)
+
+        rotD50 = st.checkbox("Create Acceleration RotD50 Spectra")
+        if rotD50:
+            deflt = int(len(xi)/2)
+            dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt, key="dampingRotD50")
+            fig6, ax = plt.subplots(1,1,figsize=(width, height))
+            ax.set_title("RotD50 Spectra")
+            on_clickRotD50(ax,dampoption)
+            
 
 
 

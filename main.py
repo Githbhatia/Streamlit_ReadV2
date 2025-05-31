@@ -360,19 +360,22 @@ def on_clickRotD50(ax, xi):
             horRec1 = horRec1.replace("270 Deg", "EW")
 
 
+        st.write("Selected Horizontal Recordings: " + horRec1 + " and " + horRec2)
 
-
-        tT = np.concatenate( (np.arange(0.05, 0.1, 0.01) , np.arange (0.1, 0.5, 0.05) , np.arange (0.5, 1, 0.05) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
+        tT = np.concatenate( (np.arange(0.05, 0.1, 0.01) , np.arange (0.1, 0.5, 0.05) , np.arange (0.5, 2.0, 0.05) , np.arange (2.0, 2.5, 0.05) ,np.arange (2.5, 5.0, 0.05) ,np.arange (5.0, endPeriod, 0.05) ) ) # Time vector for the spectral response
         freq = 1/tT # Frequenxy vector
         df = 1.0/dtAccel1
         Sfin=[]
         L01 = np.where(tT == 0.1)[0][0]
-        L05 = np.where(tT == 0.5)[0][0] + 1
-        rotmax = np.zeros((180,len(tT)))
-        ASI = np.zeros((360))
+        L05 = np.where(tT == 0.5)[0][0]
+        L20 = np.where(tT == 2.0)[0][0] 
+        L25 = np.where(tT == 2.5)[0][0] 
+        L50 = np.where(tT == 5.0)[0][0] 
+        rotmax = np.zeros((180,3,len(tT)))
+        ASI = np.zeros((360)); SI = np.zeros((360)); DSI = np.zeros((360))
         Azimuth = np.zeros((360))
         # rotmaxlimit = np.zeros((360,2))
-
+        
         for i in range(0,180,1):
             if (i % 10) == 0:
                 placeholder2.write("Getting spectra for angle " + str(i))
@@ -381,33 +384,39 @@ def on_clickRotD50(ax, xi):
             resAccel = (horRec[0,:]*np.cos(resAngle)+horRec[1,:]*np.sin(resAngle))
             # rotmaxlimit[i,:] = absmaxND(resAccel)*np.cos(resAngle), absmaxND(resAccel)*np.sin(resAngle)
             # rotmaxlimit[i+180,:] = -absmaxND(resAccel)*np.cos(resAngle), -absmaxND(resAccel)*np.sin(resAngle)
-            Sfin= RS_function(resAccel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'SA')
-            rotmax[i,:]= Sfin[0,:]
-            ASI[i] = round(np.trapezoid(Sfin[0,:][L01:L05],tT[L01:L05]),3)
+            Sfin= RS_function(resAccel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'PSAPSVSD')
+            rotmax[i,:,:]= Sfin[:,:]
+            ASI[i] = np.trapezoid(Sfin[0,:][L01:L05+1],tT[L01:L05+1])
             ASI[i+180] = ASI[i]
+            SI[i] = np.trapezoid(Sfin[1,:][L01:L25+1],tT[L01:L25+1])*980.665
+            SI[i+180] = SI[i]
+            DSI[i] = np.trapezoid(Sfin[2,:][L20:L50+1],tT[L20:L50+1])*980.665
+            DSI[i+180] = DSI[i]
             Az = 450 - i
             if Az >= 360:
                 Az = Az - 360
             Azimuth[i] = Az; Azimuth[i+180] = 180 + Az
+        
 
         placeholder2.write("Completed getting spectra for all angles")
-        rotD50Spec = np.zeros((len(tT)));rotD100Spec = np.zeros((len(tT)));rotD00Spec = np.zeros((len(tT)))
+        rotD50Spec = np.zeros((3,len(tT)));rotD100Spec = np.zeros((3,len(tT)));rotD00Spec = np.zeros((3,len(tT)))
         
-        for i in range(0,len(tT),1):
-            rotD50Spec[i] = np.median(rotmax[:,i])
-            rotD100Spec[i] = np.max(rotmax[:,i])
-            rotD00Spec[i] = np.min(rotmax[:,i])
+        for j in range(0,3,1):
+            for i in range(0,len(tT),1):
+                rotD50Spec[j,i] = np.median(rotmax[:,j,i])
+                rotD100Spec[j,i] = np.max(rotmax[:,j,i])
+                rotD00Spec[j,i] = np.min(rotmax[:,j,i])
 
 
 
-        Sfin1= RS_function(horRec[0,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'SA')
-        Sfin2= RS_function(horRec[1,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'SA')
+        Sfin1= RS_function(horRec[0,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'PSA')
+        Sfin2= RS_function(horRec[1,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'PSA')
         geomeanSpectra = np.sqrt(np.array(Sfin1[0:])*np.array(Sfin2[0,:]))
         ax.set_xlabel('Period (secs)')
-        ax.set_ylabel('SA (g)')
-        ax.plot(tT,rotD50Spec,color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
-        ax.plot(tT,rotD100Spec,color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
-        ax.plot(tT,rotD00Spec,color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
+        ax.set_ylabel('PSA (g)')
+        ax.plot(tT,rotD50Spec[0],color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
+        ax.plot(tT,rotD100Spec[0],color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
+        ax.plot(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
         ax.plot(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
 
         plt.legend(loc="center right",fontsize = 'x-small')
@@ -416,20 +425,16 @@ def on_clickRotD50(ax, xi):
         st.pyplot(fig6)
         
 
-        ASIRotD00 = round(np.trapezoid(rotD00Spec[L01:L05],tT[L01:L05]),3)  
-        ASIRotD50 = round(np.trapezoid(rotD50Spec[L01:L05],tT[L01:L05]),3)
-        ASIRotD100 = round(np.trapezoid(rotD100Spec[L01:L05],tT[L01:L05]),3)
-        # st.write("ASI RotD00 = " + str(ASIRotD00) + " (g-seconds)")
-        # st.write("ASI RotD50 = " + str(ASIRotD50) + " (g-seconds)")
-        # st.write("ASI RotD100 = " + str(ASIRotD100) + " (g-seconds)")
-
+        ASIRotD00 = np.trapezoid(rotD00Spec[0,L01:L05+1],tT[L01:L05+1])
+        ASIRotD50 = np.trapezoid(rotD50Spec[0,L01:L05+1],tT[L01:L05+1])
+        ASIRotD100 = np.trapezoid(rotD100Spec[0,L01:L05+1],tT[L01:L05+1])
 
         ASIRotD50A = np.full((360), ASIRotD50)
         ASIRotD00A = np.full((360), ASIRotD00)
         ASIRotD100A = np.full((360), ASIRotD100)
 
         Azimuthpi = 2 * np.pi * Azimuth / 360
-        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        figASI, ax = plt.subplots(subplot_kw={'projection': 'polar'})
         ax.set_theta_zero_location("N")  # theta=0 at the top
         ax.set_theta_direction(-1)
         ax.plot(Azimuthpi, ASI, label='ASI')
@@ -437,17 +442,73 @@ def on_clickRotD50(ax, xi):
         ax.plot(Azimuthpi, ASIRotD00A, linestyle='-.', color='blue', label='RotD00 ASI')
         ax.plot(Azimuthpi, ASIRotD100A, linestyle=':', color='green', label='RotD100 ASI')
         ax.set_xticks(np.arange(0, 2.0 * np.pi, np.pi / 6))
-
+        ax.set_rlabel_position(45)
         ax.grid(True)
-        fig.legend (loc='outside upper right', fontsize='small')
-        fig.suptitle('Acceleration Spectrum Intensity (g-seconds)*', fontsize=10)
+        figASI.legend (loc='outside upper right', fontsize='small')
+        figASI.suptitle('Acceleration Spectrum Intensity (g.seconds)*', fontsize=10)
         ax.annotate('*Plotted against azimuth angles (NS = 0 or 360/180 Deg, EW = 90/270 Deg)',
             xy = (1.2, -0.2),
             xycoords='axes fraction',
             ha='right',
             va="center",
             fontsize=6)
-        st.pyplot(fig)
+        st.pyplot(figASI)
+
+        SIRotD00 = np.trapezoid(rotD00Spec[1,L01:L25+1],tT[L01:L25+1])*980.665
+        SIRotD50 = np.trapezoid(rotD50Spec[1,L01:L25+1],tT[L01:L25+1])*980.665
+        SIRotD100 = np.trapezoid(rotD100Spec[1,L01:L25+1],tT[L01:L25+1])*980.665
+
+        SIRotD50A = np.full((360), SIRotD50)
+        SIRotD00A = np.full((360), SIRotD00)
+        SIRotD100A = np.full((360), SIRotD100)
+
+        figSI, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.set_theta_zero_location("N")  # theta=0 at the top
+        ax.set_theta_direction(-1)
+        ax.plot(Azimuthpi, SI, label='SI')
+        ax.plot(Azimuthpi, SIRotD50A, linestyle='--', color='red', label='RotD50 SI')
+        ax.plot(Azimuthpi, SIRotD00A, linestyle='-.', color='blue', label='RotD00 SI')
+        ax.plot(Azimuthpi, SIRotD100A, linestyle=':', color='green', label='RotD100 SI')
+        ax.set_xticks(np.arange(0, 2.0 * np.pi, np.pi / 6))
+        ax.set_rlabel_position(45)
+        ax.grid(True)
+        figSI.legend (loc='outside upper right', fontsize='small')
+        figSI.suptitle('Velocity Spectrum Intensity (cm)*', fontsize=10)
+        ax.annotate('*Plotted against azimuth angles (NS = 0 or 360/180 Deg, EW = 90/270 Deg)',
+            xy = (1.2, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            fontsize=6)
+        st.pyplot(figSI)
+
+        DSIRotD00 = np.trapezoid(rotD00Spec[2,L20:L50+1],tT[L20:L50+1])*980.665
+        DSIRotD50 = np.trapezoid(rotD50Spec[2,L20:L50+1],tT[L20:L50+1])*980.665
+        DSIRotD100 = np.trapezoid(rotD100Spec[2,L20:L50+1],tT[L20:L50+1])*980.665
+
+        DSIRotD50A = np.full((360), DSIRotD50)
+        DSIRotD00A = np.full((360), DSIRotD00)
+        DSIRotD100A = np.full((360), DSIRotD100)
+
+        figDSI, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.set_theta_zero_location("N")  # theta=0 at the top
+        ax.set_theta_direction(-1)
+        ax.plot(Azimuthpi, DSI, label='DSI')
+        ax.plot(Azimuthpi, DSIRotD50A, linestyle='--', color='red', label='RotD50 DSI')
+        ax.plot(Azimuthpi, DSIRotD00A, linestyle='-.', color='blue', label='RotD00 DSI')
+        ax.plot(Azimuthpi, DSIRotD100A, linestyle=':', color='green', label='RotD100 DSI')
+        ax.set_xticks(np.arange(0, 2.0 * np.pi, np.pi / 6))
+        ax.set_rlabel_position(45)
+        ax.grid(True)
+        figDSI.legend (loc='outside upper right', fontsize='small')
+        figDSI.suptitle('Displacement Spectrum Intensity (cm.secs)*', fontsize=10)
+        ax.annotate('*Plotted against azimuth angles (NS = 0 or 360/180 Deg, EW = 90/270 Deg)',
+            xy = (1.2, -0.2),
+            xycoords='axes fraction',
+            ha='right',
+            va="center",
+            fontsize=6)
+        st.pyplot(figDSI)
 
 
 # Title
@@ -887,7 +948,7 @@ if filenames != None:
             xiStr = st.text_input("Damping values (separate with commas)",str("0.02, 0.05, 0.07"))
             xi =[float(i) for i in xiStr.split(",")]
         with tab3:
-            endPeriod = float(st.text_input("End Period for Spectra",str("6.0")))
+            endPeriod = st.number_input("End Period for Spectra", value = 6.0, min_value = 5.0, step = 0.5)
 
         tT = np.concatenate( (np.arange(0.05, 0.1, 0.005) , np.arange (0.1, 0.5, 0.01) , np.arange (0.5, 1, 0.02) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
         freq = 1/tT # Frequenxy vector

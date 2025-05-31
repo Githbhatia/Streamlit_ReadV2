@@ -14,6 +14,7 @@ Inputs:
                 - 'PSV' : Pseudo-velocity Spectra
                 - 'SD'  : Displacement Spectra
                 -'PSASD' : Return both Pseudo-acceleration and Displacement Spectra
+                -'PSAPSVSD' : Return Pseudo-acceleration, Pseudo-velocity and Displacement Spectra
  Output:
      - Response spectra in the unit specified by 'Resp_type'
 """
@@ -33,7 +34,7 @@ def RS_function(data, delta, T, xi, Resp_type):
     p1 = np.multiply(data, -mass)
     
     # predefine output matrices
-    S=np.zeros((2,len(T)))
+    S=np.zeros((3,len(T)))
     D1 = np.zeros(len(T))
     for j in np.arange(len(T)):
         # Duhamel time domain matrix form
@@ -66,8 +67,14 @@ def RS_function(data, delta, T, xi, Resp_type):
         elif Resp_type == 'SD':
             S[0,j] = np.max(np.abs(u1)) 
         elif Resp_type == 'PSASD':    
-            udd1 = -(w[j]**2*u1+c[j]*udre1)-data  # calculate acceleration
-            S[0,j] = np.max(np.abs(udd1+data))
+            D1[j] = np.max(np.abs(u1))
+            S[0,j] = D1[j]*w[j]**2
             S[1,j] = np.max(np.abs(u1)) 
+        elif Resp_type == 'PSAPSVSD':    
+            D1[j] = np.max(np.abs(u1))
+            S[0,j] = D1[j]*w[j]**2
+            S[1,j] = D1[j]*w[j]
+            S[2,j] = np.max(np.abs(u1)) 
+
     return S
 

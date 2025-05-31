@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import zipfile, io
 from itertools import islice
 import pandas as pd
@@ -828,7 +829,55 @@ if filenames != None:
             st.pyplot(fig4)
             st.write('Note: Orbit plots can be misleading - points on the curves are resultant at a given time but are not the maximum resultant in that direction')
 
+        st.subheader("Arias Intensity")
+        arias = st.checkbox("Create Arias Intensity")   
 
+        if arias:
+            arias1 = np.cumsum(np.square(accel1)*dtAccel1*np.pi/2/980.665/100)
+            arias2 = np.cumsum(np.square(accel2)*dtAccel2*np.pi/2/980.665/100)
+            arias3 = np.cumsum(np.square(accel3)*dtAccel3*np.pi/2/980.665/100)
+            normarias1 = arias1/np.max(arias1)
+            normarias2 = arias2/np.max(arias2)
+            normarias3 = arias3/np.max(arias3)
+
+            ariasmax= max(np.max(arias1), np.max(arias2), np.max(arias3))
+            figA, axA = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
+
+            axA[0].set_title(nameCh1)
+            axA[0].grid()
+            axA[0].set_ylabel('Arias Intensity (m/s)')
+            axA[0].plot(T1,arias1, label="Channel1", color= 'Red', linewidth=1.0)
+            axA[0].set_ylim([0, ariasmax])
+            axA[0].set_xlim(starttime,endtime)
+            axA[0].text(0.97, 0.97, 'D5-75 = ' + str(round(T1[np.argmax(normarias1 > 0.75)] - T1[np.argmax(normarias1 > 0.05)],3)), horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=axA[0].transAxes)
+            axA[0].text(0.97, 0.90, 'D5-95 = ' + str(round(T1[np.argmax(normarias1 > 0.95)] - T1[np.argmax(normarias1 > 0.05)],3)), horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Green',transform=axA[0].transAxes)
+            axA[0].add_patch(patches.Rectangle((T1[np.argmax(normarias1 > 0.05)], 0.0),T1[np.argmax(normarias1 > 0.75)] - T1[np.argmax(normarias1 > 0.05)],ariasmax,fill=True, color = 'Blue', alpha = 0.3) ) 
+            axA[0].add_patch(patches.Rectangle((T1[np.argmax(normarias1 > 0.05)], 0.0),T1[np.argmax(normarias1 > 0.95)] - T1[np.argmax(normarias1 > 0.05)],ariasmax,fill=True, color = 'Green', alpha = 0.3) ) 
+
+            axA[1].set_title(nameCh2)
+            axA[1].grid()
+            axA[1].set_ylabel('Arias Intensity (m/s)')
+            axA[1].plot(T1,arias2, label="Channel2", color= 'Red', linewidth=1.0)
+            axA[1].set_ylim([0, ariasmax])
+            axA[1].set_xlim(starttime,endtime)
+            axA[1].text(0.97, 0.97, 'D5-75 = ' + str(round(T1[np.argmax(normarias2 > 0.75)] - T1[np.argmax(normarias2 > 0.05)],3)), horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=axA[1].transAxes)
+            axA[1].text(0.97, 0.90, 'D5-95 = ' + str(round(T1[np.argmax(normarias2 > 0.95)] - T1[np.argmax(normarias2 > 0.05)],3)), horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Green',transform=axA[1].transAxes)
+            axA[1].add_patch(patches.Rectangle((T1[np.argmax(normarias2 > 0.05)], 0.0),T1[np.argmax(normarias2 > 0.75)] - T1[np.argmax(normarias2 > 0.05)],ariasmax,fill=True, color = 'Blue', alpha = 0.3) ) 
+            axA[1].add_patch(patches.Rectangle((T1[np.argmax(normarias2 > 0.05)], 0.0),T1[np.argmax(normarias2 > 0.95)] - T1[np.argmax(normarias2 > 0.05)],ariasmax,fill=True, color = 'Green', alpha = 0.3) ) 
+
+            axA[2].set_title(nameCh3)
+            axA[2].grid()
+            axA[2].set_xlabel('Time (secs)')
+            axA[2].set_ylabel('Arias Intensity (m/s)')
+            axA[2].plot(T1,arias3, label="Channel3", color= 'Red', linewidth=1.0)
+            axA[2].set_ylim([0, ariasmax])
+            axA[2].set_xlim(starttime,endtime)
+            axA[2].text(0.97, 0.97, 'D5-75 = ' + str(round(T1[np.argmax(normarias3 > 0.75)] - T1[np.argmax(normarias3 > 0.05)],3)), horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=axA[2].transAxes)
+            axA[2].text(0.97, 0.90, 'D5-95 = ' + str(round(T1[np.argmax(normarias3 > 0.95)] - T1[np.argmax(normarias3 > 0.05)],3)), horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Green',transform=axA[2].transAxes)
+            axA[2].add_patch(patches.Rectangle((T1[np.argmax(normarias3 > 0.05)], 0.0),T1[np.argmax(normarias3 > 0.75)] - T1[np.argmax(normarias3 > 0.05)],ariasmax,fill=True, color = 'Blue', alpha = 0.3) ) 
+            axA[2].add_patch(patches.Rectangle((T1[np.argmax(normarias3 > 0.05)], 0.0),T1[np.argmax(normarias3 > 0.95)] - T1[np.argmax(normarias3 > 0.05)],ariasmax,fill=True, color = 'Green', alpha = 0.3) )    
+
+            st.pyplot(figA)
 
         st.subheader("Response Spectra")
         tab1, tab2, tab3 = st.tabs(["Type of Spectra", "Damping", "End Period"])

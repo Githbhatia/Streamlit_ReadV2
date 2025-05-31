@@ -12,6 +12,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 5/26/2025 Added ROTD50 spectra and associated ASI computation (with polar gragh plotted against azimuth angles).
 
-5/26/2025 Added Arais Intensity Computation.   Added SI and DSI computation.
+5/30/2025 Added Arais Intensity Computation.   Added SI and DSI computation.
 
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

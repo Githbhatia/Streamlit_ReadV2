@@ -509,15 +509,20 @@ def on_clickRotD50(ax, xi):
         va="center",
         fontsize=6)
     st.pyplot(figDSI)
-    st.write("The rotation independent measures RotD50 ASI, SI, and DSI are calculated from the RotD50 Spectrum, which in turn is computed by taking the median of the spectra at each period for all azimuths. The RotD100 and RotD00 Spectra are computed by taking the maximum and minimum of the spectra at each period for all azimuths respectively.")
+    
     imRatios = {'Name': ['Acceleration Spectra Intensity (ASI)', 'Spectral Instensity (SI)', 'Displacement Spectral Intensity (DSI)'],
-        'Rot00': [ASIRotD00, SIRotD00, DSIRotD00],
-        'Rot50': [ASIRotD50, SIRotD50, DSIRotD50],
-        'Rot100': [ASIRotD100, SIRotD100, DSIRotD100],
+        'Min': [np.min(ASI), np.min(SI), np.min(DSI)],
+        'Median': [np.median(ASI), np.median(SI), np.median(DSI)],
+        'Max': [np.max(ASI), np.max(SI), np.max(DSI)],
+        'RotD00 Spec': [ASIRotD00, SIRotD00, DSIRotD00],
+        'RotD50 Spec': [ASIRotD50, SIRotD50, DSIRotD50],
+        'RotD100 Spec': [ASIRotD100, SIRotD100, DSIRotD100],
         'RotD100/RotD50': [ASIRotD100/ASIRotD50, SIRotD100/SIRotD50, DSIRotD100/DSIRotD50]}
     dfRatios = pd.DataFrame(imRatios)
     dfRatios.set_index('Name', inplace=True)
-    st.write(dfRatios) 
+    st.write(dfRatios.round(2)) 
+    st.write("The rotation independent measures RotD00, RotD50, RotD100 for ASI, SI, and DSI are calculated from the RotD00, RotD50, RotD100 Spectra, which in turn is computed by taking the minimum, median and maximum of the spectra respectly at each period for all azimuths. The minimum, median and maximum ASI, SI and DSI for all azimuths is also shown for comparison, in the table above.")
+
 
 def click_button():
     st.session_state.clicked = True

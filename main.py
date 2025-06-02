@@ -603,7 +603,7 @@ def d3animate():
     with c1:
         anioption = st.selectbox("Select Animation Option", ["Accel", "Vel", "Disp"], key="anioption")
     with c2:
-        arate = st.slider("Animation Rate", 1, 5, 1, key="arate")
+        arate = st.slider("Animation Rate", 1, 10, 1, key="arate")
     yaxislimit = round(accelim(scaledAccel1, scaledAccel2, scaledAccel3)*1.1,2)
     nyaxislimit = 0.0 - yaxislimit
     if anioption =="Accel":

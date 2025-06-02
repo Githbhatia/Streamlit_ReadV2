@@ -14,4 +14,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 5/30/2025 Added Arais Intensity Computation.   Added SI and DSI computation.
 
+6/1/2025 Animation of displacements in 3D added.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

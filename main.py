@@ -7,7 +7,8 @@ from itertools import islice
 import pandas as pd
 from RS_function import RS_function
 import math
-
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
+import time
 
 @st.cache_data
 def readFileV2c(_f, f_name):
@@ -523,9 +524,195 @@ def on_clickRotD50(ax, xi):
     st.write(dfRatios.round(2)) 
     st.write("The rotation independent measures RotD00, RotD50, RotD100 for ASI, SI, and DSI are calculated from the RotD00, RotD50, RotD100 Spectra, which in turn is computed by taking the minimum, median and maximum of the spectra respectly at each period for all azimuths. The minimum, median and maximum ASI, SI and DSI for all azimuths is also shown for comparison, in the table above.")
 
-
 def click_button():
     st.session_state.clicked = True
+
+def d3animate():
+    global c  
+    global arate
+    arate = 1
+    figAnim = plt.figure(10,figsize=(14,23))
+    # fig.canvas.manager.set_window_title('Orbit Plot - '+ recTime)
+
+    
+    if "Up" in nameCh1 or "HNZ" in nameCh1:
+        if "360" in nameCh2 or "180" in nameCh2:
+            xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
+            xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
+            x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
+            xRec=nameCh3;yRec=nameCh2;zRec=nameCh1
+        else:
+            xa = scaledAccel2.copy(); ya = scaledAccel3.copy(); za = scaledAccel1.copy()
+            xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
+            x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
+            xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
+    elif "Up" in nameCh2 or "HNZ" in nameCh2:
+        if "360" in nameCh1 or "180" in nameCh1:
+            xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
+            xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
+            x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
+            xRec=nameCh3;yRec=nameCh1;zRec=nameCh2
+        else:
+            xa = scaledAccel1.copy(); ya = scaledAccel3.copy(); za = scaledAccel2.copy()
+            xv = vel1.copy(); yv = vel3.copy(); zv = vel2.copy()
+            x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
+            xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
+
+    elif "Up" in nameCh3 or "HNZ" in nameCh3:
+        if "360" in nameCh1 or "180" in nameCh1:
+            xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
+            xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
+            x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
+            xRec=nameCh2;yRec=nameCh1;zRec=nameCh3
+        else:
+            xa = scaledAccel1.copy(); ya = scaledAccel2.copy(); za = scaledAccel3.copy()
+            xv = vel1.copy(); yv = vel2.copy(); zv = vel3.copy()
+            x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
+            xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
+    
+    if "360" in yRec:
+        yRec = yRec.replace("360 Deg", "NS")
+    elif "180" in yRec:
+        ya[1,:]=[i*-1 for i in ya[1,:]]
+        yv[1,:]=[i*-1 for i in yv[1,:]]
+        y[1,:]=[i*-1 for i in y[1,:]]
+        yRec = yRec.replace("180 Deg", "NS")
+    
+    if "90" in xRec:
+        xRec = xRec.replace("90 Deg", "EW")
+    elif "270" in xRec:
+        xa[:]=[i*-1 for i in xa[:]]
+        xv[:]=[i*-1 for i in xv[:]]
+        x[:]=[i*-1 for i in x[:]]
+        xRec = xRec.replace("270 Deg", "EW")
+
+    noSubplotsRows = 6;noSubplotsCols = 1;subplotCounter = 1
+    locanvasdex1=int(starttime/dtDispl1); highIndex1=int(endtime/dtDispl1); 
+    
+
+    ax = figAnim.add_subplot(2,noSubplotsCols,1, projection='3d')
+    ax2 = figAnim.add_subplot(6,noSubplotsCols,4)
+    ax3 = figAnim.add_subplot(6,noSubplotsCols,5,sharex=ax2,sharey=ax2)
+    ax4 = figAnim.add_subplot(6,noSubplotsCols,6,sharex=ax2,sharey=ax2)
+
+
+    ax2.set_xlim([starttime, endtime])
+    ax3.set_xlim([starttime, endtime])
+    ax4.set_xlim([starttime, endtime])
+    c1,c2 = st.columns(2)
+    with c1:
+        anioption = st.selectbox("Select Animation Option", ["Accel", "Vel", "Disp"], key="anioption")
+    with c2:
+        arate = st.slider("Animation Rate", 1, 5, 1, key="arate")
+    yaxislimit = round(accelim(scaledAccel1, scaledAccel2, scaledAccel3)*1.1,2)
+    nyaxislimit = 0.0 - yaxislimit
+    if anioption =="Accel":
+        ax2.set_ylabel("Accel (g)")
+        ax3.set_ylabel("Accel (g)")
+        ax4.set_ylabel("Accel (g)")
+    elif anioption =="Vel":
+        ax2.set_ylabel("Vel (cm/sec)")
+        ax3.set_ylabel("Vel (cm/sec)")
+        ax4.set_ylabel("Vel (cm/sec)")
+        yaxislimit = round(accelim(xv, yv, zv)*1.1,2)
+        nyaxislimit = 0.0 - yaxislimit
+    else:
+        ax2.set_ylabel("Disp (cm)")
+        ax3.set_ylabel("Disp (cm)")
+        ax4.set_ylabel("Disp (cm)")
+        yaxislimit = round(accelim(x, y, z)*1.1,2)
+        nyaxislimit = 0.0 - yaxislimit
+
+    ax2.set_ylim([nyaxislimit, yaxislimit])
+    ax3.set_ylim([nyaxislimit, yaxislimit])
+    ax4.set_ylim([nyaxislimit, yaxislimit])
+    ax2.plot([],[], label="Channel2", color= 'Blue', linewidth=1.0)
+    ax3.plot([],[], label="Channel3", color= 'Green', linewidth=1.0)
+    ax4.plot([],[], label="Channel1", color= 'Red', linewidth=1.0)
+    plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+
+    ax.set_xlabel(xRec + " displacement (cm)", fontsize=7)
+    ax.set_ylabel(yRec + " displacement (cm)", fontsize=7)
+    ax.set_zlabel(zRec + " displacement (cm)", fontsize=7)
+    x_limits = [np.min(x),np.max(x)]
+    y_limits = [np.min(y),np.max(y)]
+    z_limits = [np.min(z),np.max(z)]
+
+    x_range = abs(x_limits[1] - x_limits[0])
+    x_middle = np.mean(x_limits)
+    y_range = abs(y_limits[1] - y_limits[0])
+    y_middle = np.mean(y_limits)
+    z_range = abs(z_limits[1] - z_limits[0])
+    z_middle = np.mean(z_limits)
+    plot_radius = 0.5*max([x_range, y_range, z_range])
+
+    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
+    zmin = np.min(z[locanvasdex1:highIndex1])
+    zdispRange = np.max(z[locanvasdex1:highIndex1])-zmin
+    points = np.array([x[locanvasdex1:locanvasdex1+2],y[locanvasdex1:locanvasdex1+2],z[locanvasdex1:locanvasdex1+2]]).T.reshape(-1, 1, 3)
+    trace = np.concatenate([points[:-1], points[1:]], axis = 1)
+    line_collection = Line3DCollection(trace, array = z[locanvasdex1:locanvasdex1+2], cmap ="rainbow")
+    c=ax.add_collection(line_collection)
+    ax2.set_title(xRec)
+    ax3.set_title(yRec)
+    ax4.set_title(zRec)
+    if anioption =="Accel":
+        sx = xa; sy = ya; sz = za
+    elif anioption =="Vel":
+        sx = xv; sy = yv; sz = zv
+    else:
+        sx = x; sy = y; sz = z
+    allpoints = np.array([x[locanvasdex1:highIndex1],y[locanvasdex1:highIndex1],z[locanvasdex1:highIndex1]]).T.reshape(-1, 1, 3)
+    alltrace = trace = np.concatenate([allpoints[:-1], allpoints[1:]], axis = 1)
+    the_plot = st.pyplot(figAnim)
+    for i in range (0, int((highIndex1-locanvasdex1)/(10*arate))+1):
+    # anim = animation.FuncAnimation(fig=figAnim, func=update_plot,  fargs=(ax,ax2,ax3,ax4,sx,sy,sz,alltrace,z[locanvasdex1:highIndex1],zmin,zdispRange,dtDispl1,locanvasdex1), 
+    #               frames=int((highIndex1-locanvasdex1)/(10*arate)), interval=1, blit=False, repeat=False)  
+        update_plot(i,ax,ax2,ax3,ax4,sx,sy,sz,alltrace,z[locanvasdex1:highIndex1],zmin,zdispRange,dtDispl1,locanvasdex1)
+        the_plot.pyplot(figAnim)
+        time.sleep(0.01)
+    
+
+    # FFwriter = animation.FFMpegWriter()
+    # anim.save('animation.mp4', writer = FFwriter, fps=10)
+    # st.pyplot(figAnim)
+
+def update_plot(frame,ax,ax2,ax3,ax4,x,y,z,alltrace,zd,zmin,zdispRange,dt,st):
+    
+    ax.set_title('Time = ' + str(round((st+frame*10*arate)*dt,1)) + ' secs')
+
+
+    if frame*10*arate +2 <= alltrace.shape[0]:
+        for collec in ax.collections:
+            collec.remove()
+        trace = alltrace[:frame*10*arate+1]
+        # trace = alltrace[(frame-1)*10:frame*10+1]
+        # linecolor = (255*(np.array(z[(frame-1)*10:frame*10+1])-zmin)/zdispRange).astype(int)
+        linecolor = (255*(np.array(zd[:frame*10*arate+1])-zmin)/zdispRange).astype(int)
+        line_collection = Line3DCollection(trace, color=plt.cm.jet(linecolor),linewidth=2.0)
+        c = ax.add_collection(line_collection)
+        ax.scatter(alltrace[frame*10*arate+1][1][0],alltrace[frame*10*arate+1][1][1],alltrace[frame*10*arate+1][1][2],s=10, color = 'Red')
+
+    if frame*10*arate +3 <= alltrace.shape[0]:
+        for line in ax2.lines:
+            line.remove()
+        for line in ax3.lines:
+            line.remove()
+        for line in ax4.lines:
+            line.remove()
+        tlim = st+frame*10*arate+2
+        ax2.plot(T1[:tlim],x[:tlim], color= 'Blue', linewidth=1.0)
+        ax2.plot([T1[tlim],T1[tlim]],ax2.get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
+        ax3.plot(T1[:tlim],y[:tlim], color= 'Green', linewidth=1.0)
+        ax3.plot([T1[tlim],T1[tlim]],ax3.get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
+        ax4.plot(T1[:tlim],z[:tlim], color= 'Red', linewidth=1.0)
+        ax4.plot([T1[tlim],T1[tlim]],ax4.get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
+
+    return()
+
 
 # Title
 if 'clicked' not in st.session_state:
@@ -908,6 +1095,12 @@ if filenames != None:
             st.pyplot(fig4)
             st.write('Note: Orbit plots can be misleading - points on the curves are resultant at a given time but are not the maximum resultant in that direction')
 
+        st.subheader("Animation")
+        anim = st.checkbox("Create Animation")
+        if anim:
+            st.write("This animation shows the recorded displacement in the three channels")
+            d3animate()
+
         st.subheader("Arias Intensity")
         arias = st.checkbox("Create Arias Intensity")   
 
@@ -1029,7 +1222,7 @@ if filenames != None:
             ax[2].legend(loc='upper right')
             st.pyplot(fig3)
 
-        rotD50 = st.checkbox("Create Acceleration RotD50 Spectra")
+        rotD50 = st.checkbox("Create Acceleration RotD50 Spectra (ASI,SI,DSI included)")
  
         if rotD50:
             deflt = int(len(xi)/2)
@@ -1063,3 +1256,4 @@ if filenames != None:
             if rch1 or rch2 or rch3:
                 text_contents = rsaveFile()
                 st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)
+

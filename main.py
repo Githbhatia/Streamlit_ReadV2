@@ -532,9 +532,6 @@ def d3animate():
     global arate
     arate = 1
     
-
-
-    
     if "Up" in nameCh1 or "HNZ" in nameCh1:
         if "360" in nameCh2 or "180" in nameCh2:
             xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
@@ -589,8 +586,8 @@ def d3animate():
     figAnim, ax = plt.subplot_mosaic([["A"],["B"],["C"],["D"]],
                              per_subplot_kw={('A'): {'projection': '3d'}},
                              gridspec_kw={'height_ratios': [10,1,1,1],
-                                          'width_ratios': [1]},
-                             figsize=(14, 23))
+                                          'width_ratios': [1], "wspace": 0.01, "hspace": 0.1, "top": 0.99, "left": 0.01, "right": 0.99, "bottom": 0.01},
+                             figsize=(14, 20))
 
     locanvasdex1=int(starttime/dtDispl1); highIndex1=int(endtime/dtDispl1); 
     
@@ -684,15 +681,17 @@ def d3animate():
     
 
 def update_plot(frame,ax,x,y,z,alltrace,zd,zmin,zdispRange,dt,st):
-    
-    ax['A'].set_title('Time = ' + str(round((st+frame*10*arate)*dt,1)) + ' secs')
+    for text in ax['A'].texts:
+        text.remove()
+    ax['A'].text(0.01, 0.01, 0.0, 'Time = ' + str(round((st+frame*10*arate)*dt,1)) + ' secs', horizontalalignment='left', verticalalignment='top', fontsize=14, color ='Red',transform=ax['A'].transAxes)
+    # ax['A'].set_title('Time = ' + str(round((st+frame*10*arate)*dt,1)) + ' secs')
 
     if frame*10*arate +2 <= alltrace.shape[0]:
         for collec in ax['A'].collections:
             collec.remove()
         trace = alltrace[:frame*10*arate+1]
         linecolor = (255*(np.array(zd[:frame*10*arate+1])-zmin)/zdispRange).astype(int)
-        line_collection = Line3DCollection(trace, color=plt.cm.jet(linecolor),linewidth=2.0)
+        line_collection = Line3DCollection(trace, color=plt.cm.jet(linecolor),linewidth=3.0)
         c = ax['A'].add_collection(line_collection)
         ax['A'].scatter(alltrace[frame*10*arate+1][1][0],alltrace[frame*10*arate+1][1][1],alltrace[frame*10*arate+1][1][2],s=30, color = 'Red')
 

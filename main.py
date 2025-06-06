@@ -531,8 +531,8 @@ def d3animate():
     global c  
     global arate
     arate = 1
-    figAnim = plt.figure(10,figsize=(14,23))
-    # fig.canvas.manager.set_window_title('Orbit Plot - '+ recTime)
+    
+
 
     
     if "Up" in nameCh1 or "HNZ" in nameCh1:
@@ -586,19 +586,17 @@ def d3animate():
         x[:]=[i*-1 for i in x[:]]
         xRec = xRec.replace("270 Deg", "EW")
 
-    noSubplotsRows = 6;noSubplotsCols = 1;subplotCounter = 1
+    figAnim, ax = plt.subplot_mosaic([["A"],["B"],["C"],["D"]],
+                             per_subplot_kw={('A'): {'projection': '3d'}},
+                             gridspec_kw={'height_ratios': [10,1,1,1],
+                                          'width_ratios': [1]},
+                             figsize=(14, 23))
+
     locanvasdex1=int(starttime/dtDispl1); highIndex1=int(endtime/dtDispl1); 
     
-
-    ax = figAnim.add_subplot(2,noSubplotsCols,1, projection='3d')
-    ax2 = figAnim.add_subplot(6,noSubplotsCols,4)
-    ax3 = figAnim.add_subplot(6,noSubplotsCols,5,sharex=ax2,sharey=ax2)
-    ax4 = figAnim.add_subplot(6,noSubplotsCols,6,sharex=ax2,sharey=ax2)
-
-
-    ax2.set_xlim([starttime, endtime])
-    ax3.set_xlim([starttime, endtime])
-    ax4.set_xlim([starttime, endtime])
+    ax['B'].set_xlim([starttime, endtime])
+    ax['C'].set_xlim([starttime, endtime])
+    ax['D'].set_xlim([starttime, endtime])
     c1,c2 = st.columns(2)
     with c1:
         anioption = st.selectbox("Select Animation Option", ["Accel", "Vel", "Disp"], key="anioption")
@@ -607,33 +605,33 @@ def d3animate():
     yaxislimit = round(accelim(scaledAccel1, scaledAccel2, scaledAccel3)*1.1,2)
     nyaxislimit = 0.0 - yaxislimit
     if anioption =="Accel":
-        ax2.set_ylabel("Accel (g)")
-        ax3.set_ylabel("Accel (g)")
-        ax4.set_ylabel("Accel (g)")
+        ax['B'].set_ylabel("Accel (g)")
+        ax['C'].set_ylabel("Accel (g)")
+        ax['D'].set_ylabel("Accel (g)")
     elif anioption =="Vel":
-        ax2.set_ylabel("Vel (cm/sec)")
-        ax3.set_ylabel("Vel (cm/sec)")
-        ax4.set_ylabel("Vel (cm/sec)")
+        ax['B'].set_ylabel("Vel (cm/sec)")
+        ax['C'].set_ylabel("Vel (cm/sec)")
+        ax['D'].set_ylabel("Vel (cm/sec)")
         yaxislimit = round(accelim(xv, yv, zv)*1.1,2)
         nyaxislimit = 0.0 - yaxislimit
     else:
-        ax2.set_ylabel("Disp (cm)")
-        ax3.set_ylabel("Disp (cm)")
-        ax4.set_ylabel("Disp (cm)")
+        ax['B'].set_ylabel("Disp (cm)")
+        ax['C'].set_ylabel("Disp (cm)")
+        ax['D'].set_ylabel("Disp (cm)")
         yaxislimit = round(accelim(x, y, z)*1.1,2)
         nyaxislimit = 0.0 - yaxislimit
 
-    ax2.set_ylim([nyaxislimit, yaxislimit])
-    ax3.set_ylim([nyaxislimit, yaxislimit])
-    ax4.set_ylim([nyaxislimit, yaxislimit])
-    ax2.plot([],[], label="Channel2", color= 'Blue', linewidth=1.0)
-    ax3.plot([],[], label="Channel3", color= 'Green', linewidth=1.0)
-    ax4.plot([],[], label="Channel1", color= 'Red', linewidth=1.0)
+    ax['B'].set_ylim([nyaxislimit, yaxislimit])
+    ax['C'].set_ylim([nyaxislimit, yaxislimit])
+    ax['D'].set_ylim([nyaxislimit, yaxislimit])
+    ax['B'].plot([],[], label="Channel2", color= 'Blue', linewidth=1.0)
+    ax['C'].plot([],[], label="Channel3", color= 'Green', linewidth=1.0)
+    ax['D'].plot([],[], label="Channel1", color= 'Red', linewidth=1.0)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 
-    ax.set_xlabel(xRec + " displacement (cm)", fontsize=7)
-    ax.set_ylabel(yRec + " displacement (cm)", fontsize=7)
-    ax.set_zlabel(zRec + " displacement (cm)", fontsize=7)
+    ax['A'].set_xlabel(xRec + " displacement (cm)", fontsize=7)
+    ax['A'].set_ylabel(yRec + " displacement (cm)", fontsize=7)
+    ax['A'].set_zlabel(zRec + " displacement (cm)", fontsize=7)
     x_limits = [np.min(x),np.max(x)]
     y_limits = [np.min(y),np.max(y)]
     z_limits = [np.min(z),np.max(z)]
@@ -646,19 +644,19 @@ def d3animate():
     z_middle = np.mean(z_limits)
     plot_radius = 0.5*max([x_range, y_range, z_range])
 
-    ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
-    ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
-    ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+    ax['A'].set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+    ax['A'].set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+    ax['A'].set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
     zmin = np.min(z[locanvasdex1:highIndex1])
     zdispRange = np.max(z[locanvasdex1:highIndex1])-zmin
     points = np.array([x[locanvasdex1:locanvasdex1+2],y[locanvasdex1:locanvasdex1+2],z[locanvasdex1:locanvasdex1+2]]).T.reshape(-1, 1, 3)
     trace = np.concatenate([points[:-1], points[1:]], axis = 1)
     line_collection = Line3DCollection(trace, array = z[locanvasdex1:locanvasdex1+2], cmap ="rainbow")
-    c=ax.add_collection(line_collection)
-    ax2.set_title(xRec)
-    ax3.set_title(yRec)
-    ax4.set_title(zRec)
+    c=ax['A'].add_collection(line_collection)
+    ax['B'].set_title(xRec)
+    ax['C'].set_title(yRec)
+    ax['D'].set_title(zRec)
     if anioption =="Accel":
         sx = xa; sy = ya; sz = za
     elif anioption =="Vel":
@@ -669,49 +667,52 @@ def d3animate():
     alltrace = trace = np.concatenate([allpoints[:-1], allpoints[1:]], axis = 1)
     the_plot = st.pyplot(figAnim)
     for i in range (0, int((highIndex1-locanvasdex1)/(10*arate))+1):
-    # anim = animation.FuncAnimation(fig=figAnim, func=update_plot,  fargs=(ax,ax2,ax3,ax4,sx,sy,sz,alltrace,z[locanvasdex1:highIndex1],zmin,zdispRange,dtDispl1,locanvasdex1), 
-    #               frames=int((highIndex1-locanvasdex1)/(10*arate)), interval=1, blit=False, repeat=False)  
-        update_plot(i,ax,ax2,ax3,ax4,sx,sy,sz,alltrace,z[locanvasdex1:highIndex1],zmin,zdispRange,dtDispl1,locanvasdex1)
+        
+        update_plot(i,ax,sx,sy,sz,alltrace,z[locanvasdex1:highIndex1],zmin,zdispRange,dtDispl1,locanvasdex1)
         the_plot.pyplot(figAnim)
         time.sleep(0.01)
+    for ii in range(10,1,-1):
+        Elev = z_middle + ii*2*plot_radius/10
+        ax["A"].view_init(elev=Elev, azim=-60)
+        the_plot.pyplot(figAnim)
+    for ii in range(-60,65,20):
+        ax["A"].view_init(elev=z_middle+plot_radius/10, azim=ii)
+        the_plot.pyplot(figAnim)
+    ax["A"].view_init(elev=z_middle+plot_radius, azim=60)
+    the_plot.pyplot(figAnim)
+
     
 
-    # FFwriter = animation.FFMpegWriter()
-    # anim.save('animation.mp4', writer = FFwriter, fps=10)
-    # st.pyplot(figAnim)
-
-def update_plot(frame,ax,ax2,ax3,ax4,x,y,z,alltrace,zd,zmin,zdispRange,dt,st):
+def update_plot(frame,ax,x,y,z,alltrace,zd,zmin,zdispRange,dt,st):
     
-    ax.set_title('Time = ' + str(round((st+frame*10*arate)*dt,1)) + ' secs')
-
+    ax['A'].set_title('Time = ' + str(round((st+frame*10*arate)*dt,1)) + ' secs')
 
     if frame*10*arate +2 <= alltrace.shape[0]:
-        for collec in ax.collections:
+        for collec in ax['A'].collections:
             collec.remove()
         trace = alltrace[:frame*10*arate+1]
-        # trace = alltrace[(frame-1)*10:frame*10+1]
-        # linecolor = (255*(np.array(z[(frame-1)*10:frame*10+1])-zmin)/zdispRange).astype(int)
         linecolor = (255*(np.array(zd[:frame*10*arate+1])-zmin)/zdispRange).astype(int)
         line_collection = Line3DCollection(trace, color=plt.cm.jet(linecolor),linewidth=2.0)
-        c = ax.add_collection(line_collection)
-        ax.scatter(alltrace[frame*10*arate+1][1][0],alltrace[frame*10*arate+1][1][1],alltrace[frame*10*arate+1][1][2],s=10, color = 'Red')
+        c = ax['A'].add_collection(line_collection)
+        ax['A'].scatter(alltrace[frame*10*arate+1][1][0],alltrace[frame*10*arate+1][1][1],alltrace[frame*10*arate+1][1][2],s=30, color = 'Red')
 
     if frame*10*arate +3 <= alltrace.shape[0]:
-        for line in ax2.lines:
+        for line in ax['B'].lines:
             line.remove()
-        for line in ax3.lines:
+        for line in ax['C'].lines:
             line.remove()
-        for line in ax4.lines:
+        for line in ax['D'].lines:
             line.remove()
         tlim = st+frame*10*arate+2
-        ax2.plot(T1[:tlim],x[:tlim], color= 'Blue', linewidth=1.0)
-        ax2.plot([T1[tlim],T1[tlim]],ax2.get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
-        ax3.plot(T1[:tlim],y[:tlim], color= 'Green', linewidth=1.0)
-        ax3.plot([T1[tlim],T1[tlim]],ax3.get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
-        ax4.plot(T1[:tlim],z[:tlim], color= 'Red', linewidth=1.0)
-        ax4.plot([T1[tlim],T1[tlim]],ax4.get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
+        ax['B'].plot(T1[:tlim],x[:tlim], color= 'Blue', linewidth=1.0)
+        ax['B'].plot([T1[tlim],T1[tlim]],ax['B'].get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
+        ax['C'].plot(T1[:tlim],y[:tlim], color= 'Green', linewidth=1.0)
+        ax['C'].plot([T1[tlim],T1[tlim]],ax['C'].get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
+        ax['D'].plot(T1[:tlim],z[:tlim], color= 'Red', linewidth=1.0)
+        ax['D'].plot([T1[tlim],T1[tlim]],ax['D'].get_ylim(), linestyle="--", color= 'k',linewidth=0.3)
 
     return()
+
 
 
 # Title
@@ -958,8 +959,9 @@ if filenames != None:
     values = st.sidebar.slider("Select range of times to use", 0.0, dtAccel1*numofPointsAccel1, (startlimAccel(trigger), endlimAccel(trigger)), step= 0.1)
     st.sidebar.caption("*Range autoselected using a trigger of " + str(round(trigger*scaleValue(unitsAccel1),3)) + "g")
     starttime, endtime = values
-    width = st.sidebar.slider("plot width", 1, 25, 10)
-    height = st.sidebar.slider("plot height", 1, 10, 8)
+    # width = st.sidebar.slider("plot width", 1, 25, 10)
+    # height = st.sidebar.slider("plot height", 1, 10, 8)
+    width = 10; height = 8
     doption = st.selectbox("Plot",("Accel", "Vel", "Disp"),)
 
     if EOF == 1:
@@ -1020,7 +1022,7 @@ if filenames != None:
         st.pyplot(fig)
 
         st.subheader("Orbit Plots")
-        orbitplot = st.checkbox("Create Orbit Plots")
+        orbitplot = st.checkbox("Create Orbit Plots", key= 'orbitplt')
         if orbitplot:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
 
@@ -1095,16 +1097,14 @@ if filenames != None:
             st.pyplot(fig4)
             st.write('Note: Orbit plots can be misleading - points on the curves are resultant at a given time but are not the maximum resultant in that direction')
 
-        st.subheader("Animation")
-        anim = st.checkbox("Create Animation")
-        if anim:
-            st.write("This animation shows the recorded displacement in the three channels")
-            d3animate()
+
 
         st.subheader("Arias Intensity")
-        arias = st.checkbox("Create Arias Intensity")   
+        arias = st.checkbox("Create Arias Intensity", key='ariasintensity')   
 
         if arias:
+            if "anim" in st.session_state:
+                st.session_state.anim = False
             arias1 = np.cumsum(np.square(accel1)*dtAccel1*np.pi/2/980.665/100)
             arias2 = np.cumsum(np.square(accel2)*dtAccel2*np.pi/2/980.665/100)
             arias3 = np.cumsum(np.square(accel3)*dtAccel3*np.pi/2/980.665/100)
@@ -1150,8 +1150,10 @@ if filenames != None:
         freq = 1/tT # Frequenxy vector
         df = 1.0/dtAccel1
         
-        respsec = st.checkbox("Create Response Spectra")
+        respsec = st.checkbox("Create Response Spectra", key = 'respSpectra')
         if respsec:
+            if "anim" in st.session_state:
+                st.session_state.anim = False
             sAll = np.zeros((3,len(xi),len(tT)))
 
             yaxislimit = round(accelim(scaledAccel1, scaledAccel2, scaledAccel3)*1.1,2)
@@ -1185,8 +1187,10 @@ if filenames != None:
             ax[2].legend()
             st.pyplot(fig2)
 
-        respec3 = st.checkbox("Create PSA vs Disp Spectra")
+        respec3 = st.checkbox("Create PSA vs Disp Spectra", key='PSArespec3')
         if respec3:
+            if "anim" in st.session_state:
+                st.session_state.anim = False
             deflt = int(len(xi)/2)
             cc1,cc2 = st.tabs(["Damping ratio", "Number of points"])
             with cc1:
@@ -1208,8 +1212,10 @@ if filenames != None:
 
             st.pyplot(fig5)
 
-        respsec2 = st.checkbox("Create Tripartite Spectra")
+        respsec2 = st.checkbox("Create Tripartite Spectra", key='TripartiteSpectra')
         if respsec2:
+            if "anim" in st.session_state:
+                st.session_state.anim = False
             fig3, ax = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height*1.5))
             ax[0].set_title(nameCh1)
             resTripSpectrafn(accel1,ax[0])
@@ -1222,9 +1228,11 @@ if filenames != None:
             ax[2].legend(loc='upper right')
             st.pyplot(fig3)
 
-        rotD50 = st.checkbox("Create Acceleration RotD50 Spectra (ASI,SI,DSI included)")
+        rotD50 = st.checkbox("Create Acceleration RotD50 Spectra (ASI,SI,DSI included)", key='rotD50Spectra')
  
         if rotD50:
+            if "anim" in st.session_state:
+                st.session_state.anim = False
             deflt = int(len(xi)/2)
             dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt, key="dampingRotD50")
             fig6, ax = plt.subplots(1,1,figsize=(width, height))
@@ -1256,4 +1264,13 @@ if filenames != None:
             if rch1 or rch2 or rch3:
                 text_contents = rsaveFile()
                 st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)
+
+    if EOF != 1:
+        st.divider()
+        st.subheader("Animation")
+        anim = st.checkbox("Create Animation (recommend unchecking all other options)", key='anim')
+        if anim:
+
+            st.write("This animation shows the recorded displacement in the three channels")
+            d3animate()
 

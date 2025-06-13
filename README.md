@@ -18,4 +18,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 6/6/2025 Somewhat optimized Animation - put at the end of application to prevent rerun of animation with other options (still looking for a better option).
 
+6/13/2025 Improved map - included marker for epicenter and location of station.  Added sliders for elevation and azimuth angles for animation.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

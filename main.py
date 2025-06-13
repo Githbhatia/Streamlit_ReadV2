@@ -9,13 +9,17 @@ from RS_function import RS_function
 import math
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
+import pydeck as pdk
 
 @st.cache_data
 def readFileV2c(_f, f_name):
     for line in islice(f, 1, 2):   
         recTime = line[10:].strip()
         # print(recTime)
-    for line in islice(f, 6, 7):
+    for line in islice(f, 0, 1):
+        hypocenter = line[11:].strip()
+        # print(hypocenter)
+    for line in islice(f, 5, 6):
         nameCh=f_name[:f_name.find(".V2c")-7] + " " +line[13:37].strip()
     # print(nameCh)
     for line in islice(f, 15, 16):
@@ -37,7 +41,9 @@ def readFileV2c(_f, f_name):
     accel = readchunk15(f,numofPoints)
     # print(accel)
     f.close()
-    return recTime,latitude,longitude,nameCh,dt,numofPoints,accel
+
+    return recTime,hypocenter,latitude,longitude,nameCh,dt,numofPoints,accel
+
 def chunkstring15(string, length):
     return (float(string[0+i:length+i]) for i in range(0, len(string), length))
 
@@ -601,6 +607,17 @@ def d3animate():
         arate = st.slider("Animation Rate", 1, 10, 1, key="arate")
     yaxislimit = round(accelim(scaledAccel1, scaledAccel2, scaledAccel3)*1.1,2)
     nyaxislimit = 0.0 - yaxislimit
+    E1, Az = st.columns(2)
+    with E1:
+        Elev = st.slider("Elevation", -90, 90, 40, step=10, key="Elev")
+    with Az:
+        Azim = st.slider("Azimuth", 0, 360, 135, step = 15, key="Azim")
+    if Azim <= 270:
+        Azim = 90 - Azim 
+    else:
+        Azim = 450 - Azim
+
+    ax["A"].view_init(elev=Elev, azim=Azim)
     if anioption =="Accel":
         ax['B'].set_ylabel("Accel (g)")
         ax['C'].set_ylabel("Accel (g)")
@@ -668,14 +685,6 @@ def d3animate():
         update_plot(i,ax,sx,sy,sz,alltrace,z[locanvasdex1:highIndex1],zmin,zdispRange,dtDispl1,locanvasdex1)
         the_plot.pyplot(figAnim)
         time.sleep(0.01)
-    for ii in range(10,1,-1):
-        Elev = z_middle + ii*2*plot_radius/10
-        ax["A"].view_init(elev=Elev, azim=-60)
-        the_plot.pyplot(figAnim)
-    for ii in range(-60,65,20):
-        ax["A"].view_init(elev=z_middle+plot_radius/10, azim=ii)
-        the_plot.pyplot(figAnim)
-    ax["A"].view_init(elev=z_middle+plot_radius, azim=60)
     the_plot.pyplot(figAnim)
 
     
@@ -777,31 +786,31 @@ if filenames != None:
             placeholder.write("Reading V2c file " + str(index))
             if ("HNE" in vfl and "acc" in vfl) or ("HN1" in vfl and "acc" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFileV2c(f,f_name[index])
             elif ("HNN" in vfl and "acc" in vfl) or ("HN2" in vfl and "acc" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh2,dtAccel2,numofPointsAccel2,accel2 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh2,dtAccel2,numofPointsAccel2,accel2 = readFileV2c(f,f_name[index])
             elif ("HNZ" in vfl and "acc" in vfl) or ("HNZ" in vfl and "acc" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh3,dtAccel3,numofPointsAccel3,accel3 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh3,dtAccel3,numofPointsAccel3,accel3 = readFileV2c(f,f_name[index])
             elif ("HNE" in vfl and "vel" in vfl) or ("HN1" in vfl and "vel" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh1,dtVel1,numofPointsVel1,vel1 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh1,dtVel1,numofPointsVel1,vel1 = readFileV2c(f,f_name[index])
             elif ("HNN" in vfl and "vel" in vfl) or ("HN2" in vfl and "vel" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh2,dtVel2,numofPointsVel2,vel2 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh2,dtVel2,numofPointsVel2,vel2 = readFileV2c(f,f_name[index])
             elif ("HNZ" in vfl and "vel" in vfl) or ("HNZ" in vfl and "vel" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh3,dtVel3,numofPointsVel3,vel3 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh3,dtVel3,numofPointsVel3,vel3 = readFileV2c(f,f_name[index])
             elif ("HNE" in vfl and "dis" in vfl) or ("HN1" in vfl and "dis" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh1,dtDispl1,numofPointsDispl1,displ1 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh1,dtDispl1,numofPointsDispl1,displ1 = readFileV2c(f,f_name[index])
             elif ("HNN" in vfl and "dis" in vfl) or ("HN2" in vfl and "dis" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh2,dtDispl2,numofPointsDispl2,displ2 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh2,dtDispl2,numofPointsDispl2,displ2 = readFileV2c(f,f_name[index])
             elif ("HNZ" in vfl and "dis" in vfl) or ("HNZ" in vfl and "dis" in vfl):
                 f = f_all[index]
-                recTime,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl2,displ3 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl2,displ3 = readFileV2c(f,f_name[index])
             else:
                 st.write("Error", "File not recognized, exiting")
                 exit()
@@ -927,6 +936,7 @@ if filenames != None:
             displ3 = readchunk(f,numofLines)  
         f.close()
         placeholder.badge("Completed reading V2 file", icon=":material/check:", color="green")
+        hypocenter = ""
 
 
     
@@ -944,8 +954,50 @@ if filenames != None:
     
     st.logo("HXBLogo.png", size="large")
     st.header(recTime)
-    df = pd.DataFrame({"lat":[float(latitude)], "lon":[float(longitude)]})
-    st.map(df)   
+    if hypocenter != "":
+        st.subheader("Hypocenter: " + str(hypocenter))  
+        hypolatlong = hypocenter[:hypocenter.find("H")].strip()
+        hypoLatitude = float(hypolatlong[:hypolatlong.find(" ")-1])
+        hypoLongitude = float(hypolatlong[hypolatlong.find(" ")+1: len(hypolatlong)-1].strip())
+        magnitude = hypocenter[hypocenter.find("M")+3:len(hypocenter)].strip()
+        df = pd.DataFrame({"lat":[float(latitude), hypoLatitude], "lon":[float(longitude), hypoLongitude], "color":[[255,0,0],  [0,0,255]], "size":[500, 700], "text": ["Station", "Epicenter, Mw"+magnitude]})
+    else:
+        df = pd.DataFrame({"lat":[float(latitude)], "lon":[float(longitude)], "color": [[255,0,0]], "size":[500], "text": ["Station"]})
+    # st.map(df, color="color", size = "size", use_container_width=True)  
+
+    st.pydeck_chart(
+    pdk.Deck(
+        map_style="mapbox://styles/mapbox/light-v9",
+        initial_view_state=pdk.ViewState(
+             longitude=float(longitude), latitude=float(latitude), zoom=7
+        ),
+        layers=[
+            pdk.Layer(
+                "ScatterplotLayer",
+                data=df,
+                get_position=["lon", "lat"],
+                get_color="color",
+                get_radius="size",
+                radiusMinPixels=5,
+                radiusMaxPixels=50,
+                pickable=True,
+                ),
+            pdk.Layer(
+                "TextLayer",
+                data=df,
+                get_position=["lon", "lat"],
+                get_color="color",
+                get_text="text",
+                get_size=16,
+                get_text_anchor='"middle"',
+                get_alignment_baseline='"top"',
+                pickable=True,
+                ),
+            ],
+        )
+    )
+
+
     c1, c2 =st.columns(2)
     with c1:
         if stationNo != 0 and stationNo.isnumeric():

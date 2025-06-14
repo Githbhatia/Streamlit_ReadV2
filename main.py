@@ -964,13 +964,11 @@ if filenames != None:
     else:
         df = pd.DataFrame({"lat":[float(latitude)], "lon":[float(longitude)], "color": [[255,0,0]], "size":[500], "text": ["Station"]})
     # st.map(df, color="color", size = "size", use_container_width=True)  
-
+    view = pdk.data_utils.compute_view(df[["lon", "lat"]])
     st.pydeck_chart(
     pdk.Deck(
         map_style="mapbox://styles/mapbox/light-v9",
-        initial_view_state=pdk.ViewState(
-             longitude=float(longitude), latitude=float(latitude), zoom=7
-        ),
+        initial_view_state=view,
         layers=[
             pdk.Layer(
                 "ScatterplotLayer",

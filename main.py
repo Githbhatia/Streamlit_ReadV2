@@ -961,10 +961,15 @@ if filenames != None:
         hypoLongitude = float(hypolatlong[hypolatlong.find(" ")+1: len(hypolatlong)-1].strip())
         magnitude = hypocenter[hypocenter.find("M")+3:len(hypocenter)].strip()
         df = pd.DataFrame({"lat":[float(latitude), hypoLatitude], "lon":[float(longitude), hypoLongitude], "color":[[255,0,0],  [0,0,255]], "size":[500, 700], "text": ["Station", "Epicenter, Mw"+magnitude]})
+        view = pdk.data_utils.compute_view(df[["lon", "lat"]])
     else:
         df = pd.DataFrame({"lat":[float(latitude)], "lon":[float(longitude)], "color": [[255,0,0]], "size":[500], "text": ["Station"]})
+        view = pdk.ViewState(
+            latitude=float(latitude),
+            longitude=float(longitude),
+            zoom=8,)
     # st.map(df, color="color", size = "size", use_container_width=True)  
-    view = pdk.data_utils.compute_view(df[["lon", "lat"]])
+    
     st.pydeck_chart(
     pdk.Deck(
         map_style="mapbox://styles/mapbox/light-v9",

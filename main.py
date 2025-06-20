@@ -972,7 +972,7 @@ if filenames != None:
     
     st.pydeck_chart(
     pdk.Deck(
-        map_style="mapbox://styles/mapbox/light-v11",
+        #map_style="mapbox://styles/mapbox/light-v11",
         initial_view_state=view,
         layers=[
             pdk.Layer(

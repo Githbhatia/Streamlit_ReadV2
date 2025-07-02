@@ -20,4 +20,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 6/13/2025 Improved map - included marker for epicenter and location of station.  Added sliders for elevation and azimuth angles for animation.
 
+7/1/2025 Revised as v2c files dont seem to have consistent names.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

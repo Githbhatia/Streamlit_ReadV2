@@ -784,33 +784,33 @@ if filenames != None:
         EOF = 0
         for index,vfl in enumerate(f_name):
             placeholder.write("Reading V2c file " + str(index))
-            if ("HNE" in vfl and "acc" in vfl) or ("HN1" in vfl and "acc" in vfl) or ("HLE" in vfl and "acc" in vfl):
+            if any(x in vfl for x in ["HNE", "HN1", "HLE"]) and "acc" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFileV2c(f,f_name[index])
-            elif ("HNN" in vfl and "acc" in vfl) or ("HN2" in vfl and "acc" in vfl) or ("HLN" in vfl and "acc" in vfl):
+            elif any(x in vfl for x in ["HNN", "HN2", "HLN"]) and "acc" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh2,dtAccel2,numofPointsAccel2,accel2 = readFileV2c(f,f_name[index])
-            elif ("HNZ" in vfl and "acc" in vfl) or ("HNZ" in vfl and "acc" in vfl) or ("HLZ" in vfl and "acc" in vfl):
+            elif any(x in vfl for x in ["HNZ", "HNZ", "HLZ"]) and "acc" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh3,dtAccel3,numofPointsAccel3,accel3 = readFileV2c(f,f_name[index])
-            elif ("HNE" in vfl and "vel" in vfl) or ("HN1" in vfl and "vel" in vfl) or ("HLE" in vfl and "vel" in vfl):
+            elif any(x in vfl for x in ["HNE", "HN1", "HLE"]) and "vel" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh1,dtVel1,numofPointsVel1,vel1 = readFileV2c(f,f_name[index])
-            elif ("HNN" in vfl and "vel" in vfl) or ("HN2" in vfl and "vel" in vfl) or ("HLN" in vfl and "vel" in vfl):
+            elif any(x in vfl for x in ["HNN", "HN2", "HLN"]) and "vel" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh2,dtVel2,numofPointsVel2,vel2 = readFileV2c(f,f_name[index])
-            elif ("HNZ" in vfl and "vel" in vfl) or ("HNZ" in vfl and "vel" in vfl) or ("HLZ" in vfl and "vel" in vfl):
+            elif any(x in vfl for x in ["HNZ", "HNZ", "HLZ"]) and "vel" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh3,dtVel3,numofPointsVel3,vel3 = readFileV2c(f,f_name[index])
-            elif ("HNE" in vfl and "dis" in vfl) or ("HN1" in vfl and "dis" in vfl) or ("HLE" in vfl and "dis" in vfl):
+            elif any(x in vfl for x in ["HNE", "HN1", "HLE"]) and "dis" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh1,dtDispl1,numofPointsDispl1,displ1 = readFileV2c(f,f_name[index])
-            elif ("HNN" in vfl and "dis" in vfl) or ("HN2" in vfl and "dis" in vfl) or ("HLN" in vfl and "dis" in vfl):
+            elif any(x in vfl for x in ["HNN", "HN2", "HLN"]) and "dis" in vfl:
                 f = f_all[index]
                 recTime,hypocenter,latitude,longitude,nameCh2,dtDispl2,numofPointsDispl2,displ2 = readFileV2c(f,f_name[index])
-            elif ("HNZ" in vfl and "dis" in vfl) or ("HNZ" in vfl and "dis" in vfl) or ("HLZ" in vfl and "dis" in vfl):
+            elif any(x in vfl for x in ["HNZ", "HNZ", "HLZ"]) and "dis" in vfl:
                 f = f_all[index]
-                recTime,hypocenter,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl2,displ3 = readFileV2c(f,f_name[index])
+                recTime,hypocenter,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl3,displ3 = readFileV2c(f,f_name[index])
             else:
                 st.write("Error", "File not recognized, exiting")
                 exit()
@@ -967,7 +967,7 @@ if filenames != None:
         view = pdk.ViewState(
             latitude=float(latitude),
             longitude=float(longitude),
-            zoom=8,)
+            zoom=6,)
     # st.map(df, color="color", size = "size", use_container_width=True)  
     
     st.pydeck_chart(

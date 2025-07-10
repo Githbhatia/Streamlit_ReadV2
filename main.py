@@ -64,7 +64,7 @@ def readchunk(f, numofLines):
     #print(x)
     return x
 def scaleValue(units):
-    if units =="cm/sec2":
+    if units =="cm/sec2" or units == "cm/sec^2" or units == "cm/s^2" or units == "CM/SEC/SEC":
         return 1/980.665
     else:
         return 1.0
@@ -537,8 +537,8 @@ def d3animate():
     global c  
     global arate
     arate = 1
-    
-    if "Up" in nameCh1 or "HNZ" in nameCh1:
+
+    if "up" in nameCh1.lower() or "HNZ" in nameCh1:
         if "360" in nameCh2 or "180" in nameCh2:
             xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
             xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
@@ -549,7 +549,7 @@ def d3animate():
             xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
             x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
             xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
-    elif "Up" in nameCh2 or "HNZ" in nameCh2:
+    elif "up" in nameCh2.lower() or "HNZ" in nameCh2:
         if "360" in nameCh1 or "180" in nameCh1:
             xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
             xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
@@ -561,7 +561,7 @@ def d3animate():
             x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
             xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
-    elif "Up" in nameCh3 or "HNZ" in nameCh3:
+    elif "up" in nameCh3.lower() or "HNZ" in nameCh3:
         if "360" in nameCh1 or "180" in nameCh1:
             xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
             xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
@@ -840,25 +840,28 @@ if filenames != None:
 
         for line in islice(f, 20, 21):
             #print(line)
-            numofPointsAccel1 = int(line[0: line.find("points")].strip())
-            dtAccel1 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-            unitsAccel1 = line[line.find(", in") + 4: line.find(". (")].strip()
+            numofPointsAccel1 = int(line[0: line.lower().find("points")].strip())
+            dtAccel1 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+            if '8f10.5' in line:
+                unitsAccel1 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
+            else:
+                unitsAccel1 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()
         numofLines = lines(numofPointsAccel1)
         accel1 = readchunk(f,numofLines)
 
         for line in islice(f, 0,1):
             #print(line)
-            numofPointsVel1 = int(line[0: line.find("points")].strip())
-            dtVel1 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-            unitsVel1 = line[line.find(", in") + 4: line.find(".  (")].strip()
+            numofPointsVel1 = int(line[0: line.lower().find("points")].strip())
+            dtVel1 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+            unitsVel1 = line[line.lower().find(", in") + 4: line.lower().find(".  (")].strip()
         numofLines = lines(numofPointsVel1)
         vel1 = readchunk(f,numofLines)
 
         for line in islice(f, 0,1):
             #print(line)
-            numofPointsDispl1 = int(line[0: line.find("points")].strip())
-            dtDispl1 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-            unitsDispl1 = line[line.find(", in") + 4: line.find(".   ")].strip()
+            numofPointsDispl1 = int(line[0: line.lower().find("points")].strip())
+            dtDispl1 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+            unitsDispl1 = line[line.lower().find(", in") + 4: line.lower().find(".   ")].strip()
         numofLines = lines(numofPointsDispl1)
         displ1 = readchunk(f,numofLines)
 
@@ -879,25 +882,28 @@ if filenames != None:
         if EOF ==0:
             for line in islice(f, 0, 1):
                 #print(line)
-                numofPointsAccel2 = int(line[0: line.find("points")].strip())
-                dtAccel2 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-                unitsAccel2 = line[line.find(", in") + 4: line.find(". (")].strip()
+                numofPointsAccel2 = int(line[0: line.lower().find("points")].strip())
+                dtAccel2 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+            if '8f10.5' in line:
+                unitsAccel2 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
+            else:
+                unitsAccel2 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()
             numofLines = lines(numofPointsAccel2)
             accel2 = readchunk(f,numofLines)
 
             for line in islice(f, 0,1):
                 #print(line)
-                numofPointsVel2 = int(line[0: line.find("points")].strip())
-                dtVel2 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-                unitsVel2 = line[line.find(", in") + 4: line.find(".  (")].strip()
+                numofPointsVel2 = int(line[0: line.lower().find("points")].strip())
+                dtVel2 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+                unitsVel2 = line[line.lower().find(", in") + 4: line.lower().find(".  (")].strip()
             numofLines = lines(numofPointsVel2)
             vel2 = readchunk(f,numofLines)
 
             for line in islice(f, 0,1):
                 #print(line)
-                numofPointsDispl2 = int(line[0: line.find("points")].strip())
-                dtDispl2 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-                unitsDispl2 = line[line.find(", in") + 4: line.find(".   ")].strip()
+                numofPointsDispl2 = int(line[0: line.lower().find("points")].strip())
+                dtDispl2 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+                unitsDispl2 = line[line.lower().find(", in") + 4: line.lower().find(".   ")].strip()
             numofLines = lines(numofPointsDispl2)
             displ2 = readchunk(f,numofLines)  
 
@@ -913,25 +919,28 @@ if filenames != None:
 
             for line in islice(f, 0, 1):
                 #print(line)
-                numofPointsAccel3 = int(line[0: line.find("points")].strip())
-                dtAccel3 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-                unitsAccel3 = line[line.find(", in") + 4: line.find(". (")].strip()
+                numofPointsAccel3 = int(line[0: line.lower().find("points")].strip())
+                dtAccel3 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+                if '8f10.5' in line:
+                    unitsAccel3 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
+                else:
+                    unitsAccel3 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()
             numofLines = lines(numofPointsAccel3)
             accel3 = readchunk(f,numofLines)
 
             for line in islice(f, 0,1):
                 #print(line)
-                numofPointsVel3 = int(line[0: line.find("points")].strip())
-                dtVel3 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-                unitsVel3 = line[line.find(", in") + 4: line.find(".  (")].strip()
+                numofPointsVel3 = int(line[0: line.lower().find("points")].strip())
+                dtVel3 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+                unitsVel3 = line[line.lower().find(", in") + 4: line.lower().find(".  (")].strip()
             numofLines = lines(numofPointsVel3)
             vel3 = readchunk(f,numofLines)
 
             for line in islice(f, 0,1):
                 #print(line)
-                numofPointsDispl3 = int(line[0: line.find("points")].strip())
-                dtDispl3 = float(line[line.find("at ") + 3: line.find(" sec")].strip())
-                unitsDispl3 = line[line.find(", in") + 4: line.find(".   ")].strip()
+                numofPointsDispl3 = int(line[0: line.lower().find("points")].strip())
+                dtDispl3 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
+                unitsDispl3 = line[line.lower().find(", in") + 4: line.lower().find(".   ")].strip()
             numofLines = lines(numofPointsDispl3)
             displ3 = readchunk(f,numofLines)  
         f.close()
@@ -945,8 +954,19 @@ if filenames != None:
     scale = scaleValue(unitsAccel1) 
     scaledAccel1 = [value*scale for value in accel1]
     if EOF == 0:
+        noofpoints=min(numofPointsAccel1, numofPointsAccel2, numofPointsAccel3)
+        accel1 = accel1[:noofpoints]; vel1 = vel1[:noofpoints]; displ1 = displ1[:noofpoints]
+        accel2 = accel2[:noofpoints]; vel2 = vel2[:noofpoints]; displ2 = displ2[:noofpoints]    
+        accel3 = accel3[:noofpoints]; vel3 = vel3[:noofpoints]; displ3 = displ3[:noofpoints]
+        numofPointsAccel1 = len(accel1)
+        numofPointsAccel2 = len(accel2)
+        numofPointsAccel3 = len(accel3)
+        T1 = np.arange(0.0,numofPointsAccel1*dtAccel1, dtAccel1)
         T2 = np.arange(0.0,numofPointsAccel2*dtAccel2, dtAccel2)
-        T3 = np.arange(0.0,numofPointsAccel1*dtAccel3, dtAccel3)
+        T3 = np.arange(0.0,numofPointsAccel3*dtAccel3, dtAccel3)
+        scale = scaleValue(unitsAccel1) 
+        scaledAccel1 = [value*scale for value in accel1]
+        # print(unitsAccel1, unitsAccel2, unitsAccel3 )
         scale = scaleValue(unitsAccel2) 
         scaledAccel2 = [value*scale for value in accel2]
         scale = scaleValue(unitsAccel3)  
@@ -967,7 +987,7 @@ if filenames != None:
         view = pdk.ViewState(
             latitude=float(latitude),
             longitude=float(longitude),
-            zoom=6,)
+            zoom=8,)
     # st.map(df, color="color", size = "size", use_container_width=True)  
     
     st.pydeck_chart(
@@ -1009,8 +1029,8 @@ if filenames != None:
         st.link_button("See location of instrument in Google Maps", 'http://www.google.com/maps/place/'+ str(latitude) +','+str(longitude)+'/@'+ str(latitude) +','+str(longitude)+',12z')
     st.subheader("Recorded Values")
     trigger = min(abs(max(accel1, key=abs))/10,abs(max(accel2, key=abs))/10,abs(max(accel3, key=abs))/10,5)
-
-    values = st.sidebar.slider("Select range of times to use", 0.0, dtAccel1*numofPointsAccel1, (startlimAccel(trigger), endlimAccel(trigger)), step= 0.1)
+    # print(float(dtAccel1*numofPointsAccel1), float(startlimAccel(trigger)), float(endlimAccel(trigger)))
+    values = st.sidebar.slider("Select range of times to use", 0.0, float(dtAccel1*numofPointsAccel1), (float(startlimAccel(trigger)), float(endlimAccel(trigger))), step= 0.1)
     st.sidebar.caption("*Range autoselected using a trigger of " + str(round(trigger*scaleValue(unitsAccel1),3)) + "g")
     starttime, endtime = values
     # width = st.sidebar.slider("plot width", 1, 25, 10)
@@ -1081,7 +1101,7 @@ if filenames != None:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
 
 
-            if "Up" in nameCh1 or "HNZ" in nameCh1:
+            if "up" in nameCh1.lower() or "HNZ" in nameCh1:
                 if "360" in nameCh2 or "180" in nameCh2 or "HNN" in nameCh2:
                     xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
                     xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
@@ -1092,7 +1112,7 @@ if filenames != None:
                     xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
                     x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
                     xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
-            elif "Up" in nameCh2 or "HNZ" in nameCh2 :
+            elif "up" in nameCh2.lower() or "HNZ" in nameCh2 :
                 if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
                     xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
                     xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
@@ -1104,7 +1124,7 @@ if filenames != None:
                     x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
                     xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
-            elif "Up" in nameCh3 or "HNZ" in nameCh3:
+            elif "up" in nameCh3.lower() or "HNZ" in nameCh3:
                 if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
                     xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
                     xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()

@@ -22,4 +22,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 7/1/2025 Revised as v2c files dont seem to have consistent names.
 
+7/9/2025 Improved compatibility with older COSMOS formats - can now read CESMD files from the Northridge and Loma Prieta Earthquakes.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

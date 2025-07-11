@@ -842,7 +842,7 @@ if filenames != None:
             #print(line)
             numofPointsAccel1 = int(line[0: line.lower().find("points")].strip())
             dtAccel1 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
-            if '8f10.5' in line:
+            if '8f10.' in line:
                 unitsAccel1 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
             else:
                 unitsAccel1 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()
@@ -869,12 +869,15 @@ if filenames != None:
         for line in islice(f,1,24):
             if line != "":
                 EOF = 0
+        if EOF == 1:                        
+            st.write("End of file reached, 3 channels not found, exiting")
+            st.stop()
 
         for line in islice(f, 0, 1):
             nameCh2=line[26:].strip()
         for line in islice(f, 0, 1):
             nameCh2=nameCh2 + line.strip()
-            #print(nameCh2)
+            # print(nameCh2)
 
         for line in islice(f,1,20):
             i=0
@@ -884,7 +887,7 @@ if filenames != None:
                 #print(line)
                 numofPointsAccel2 = int(line[0: line.lower().find("points")].strip())
                 dtAccel2 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
-            if '8f10.5' in line:
+            if '8f10.' in line:
                 unitsAccel2 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
             else:
                 unitsAccel2 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()
@@ -921,7 +924,7 @@ if filenames != None:
                 #print(line)
                 numofPointsAccel3 = int(line[0: line.lower().find("points")].strip())
                 dtAccel3 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
-                if '8f10.5' in line:
+                if '8f10.' in line:
                     unitsAccel3 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
                 else:
                     unitsAccel3 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()

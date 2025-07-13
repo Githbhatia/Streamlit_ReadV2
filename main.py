@@ -728,7 +728,7 @@ if 'clicked' not in st.session_state:
     st.session_state.clicked = False
 
 st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
-st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download one free-field record at a time and do not unzip.")
+st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download free-field records (multiple ok) and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")
 st.write("This app helps read the file and show the recording and create spectra from the recordings")
 st.write("Orbit plots and Tripartite Spectra options are included.")
@@ -738,13 +738,13 @@ V2c = V2 = False
 f= None
 f_all=[];f_name=[]
 stationNo = 0
-placeholder = st.empty()
+
 if filenames != None:
     if filenames.name[-4:]==".zip":
         archive = zipfile.ZipFile(filenames, 'r')
         flist = archive.namelist()
         filenames2=io.BytesIO(archive.read(flist[0]))
-        if len(flist) > 1:
+        if len(flist) > 1 and flist[0][-4:].lower() != ".zip":
             for index,vfl in enumerate(flist):
                 if vfl[-4:]==".V2c"or vfl[-4:]==".V2C":
                     f_all.append(io.TextIOWrapper(io.BytesIO(archive.read(vfl))))
@@ -755,8 +755,28 @@ if filenames != None:
                     V2 =True
                     break
             if len(f_all) == 0 and f == None:
-                st.write('Error', 'Zip file does not contain freefield .v2 or .V2c file')
-                exit()
+                st.write('Error', 'Zip file does not contain freefield .v2 or .V2c file*')
+                st.stop()
+
+        elif len(flist) > 1 and flist[0][-4:].lower() == ".zip":
+            st.write(":red[Multiple files found in the zip file, please select the file to view]")
+            selected_file = st.selectbox("Select file to view", flist, key="file_select")
+            filenames2=io.BytesIO(archive.read(selected_file))
+            archive2 = zipfile.ZipFile(filenames2, 'r')
+            flist2 = archive2.namelist()
+            for index,vfl in enumerate(flist2):
+                if vfl[-4:]==".V2c"or vfl[-4:]==".V2C":
+                    f_all.append(io.TextIOWrapper(io.BytesIO(archive2.read(vfl))))
+                    f_name.append(vfl)
+                    V2c = True
+                if vfl[-3:]==".v2"or vfl[-3:]==".V2":
+                    f=io.TextIOWrapper(io.BytesIO(archive2.read(vfl)))
+                    V2 = True
+                    break
+            if len(f_all) == 0 and f == None:
+                st.error('Error', 'Zip file does not contain freefield .v2 or .V2c file')
+                st.stop()
+
         else:
             archive2 = zipfile.ZipFile(filenames2, 'r')
             flist2 = archive2.namelist()
@@ -771,13 +791,15 @@ if filenames != None:
                     break
             if len(f_all) == 0 and f == None:
                 st.error('Error', 'Zip file does not contain freefield .v2 or .V2c file')
-                exit()
+                st.stop()
     elif filenames[0][-3:]==".v2" or filenames[0][-3:]==".V2":
         f=open(filenames[0])
         V2 = True
     else:
         st.write('Error', 'V2 File not selected, exiting')
-        exit()
+        st.stop()
+
+    placeholder = st.empty()
     EOF =0
     
     if V2c:

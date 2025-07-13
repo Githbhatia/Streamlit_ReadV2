@@ -24,4 +24,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 7/9/2025 Improved compatibility with older COSMOS formats - can now read CESMD files from the Northridge and Loma Prieta Earthquakes.
 
+7/13/2025 Removed requirement that the zip archive contain only one free-field record.  Can now download multiple records at a time from CESMD website and pick one to display.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

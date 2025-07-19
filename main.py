@@ -44,6 +44,28 @@ def readFileV2c(_f, f_name):
 
     return recTime,hypocenter,latitude,longitude,nameCh,dt,numofPoints,accel
 
+@st.cache_data
+def readFilepeer(_f, f_name):
+    for line in islice(f, 1, 2):   
+        recTime = line[:].strip()
+        # print(recTime)
+    hypocenter = ""
+    nameCh=f_name[:f_name.find(".")] 
+    # print(nameCh)
+    latitude = ""
+    longitude = ""
+
+    for line in islice(f, 1, 2):
+        numofPoints =int(line[line.find("NPTS=")+6:line.find(", DT")].strip())
+        # print(numofPoints)
+        dt= float(line[line.find(", DT")+5:line.find("SEC")].strip())
+
+    accel = readchunk15(f,int(numofPoints/5))
+    # print(accel)
+    f.close()
+
+    return recTime,hypocenter,latitude,longitude,nameCh,dt,numofPoints,accel
+
 def chunkstring15(string, length):
     return (float(string[0+i:length+i]) for i in range(0, len(string), length))
 
@@ -64,7 +86,7 @@ def readchunk(f, numofLines):
     #print(x)
     return x
 def scaleValue(units):
-    if units =="cm/sec2" or units == "cm/sec^2" or units == "cm/s^2" or units == "CM/SEC/SEC":
+    if units.lower() =="cm/sec2" or units.lower() == "cm/sec^2" or units.lower() == "cm/s^2" or units.lower() == "cm/sec/sec":
         return 1/980.665
     else:
         return 1.0
@@ -270,8 +292,13 @@ def orbitplotfn():
 
 def adrs(accel,ax):
     tT = np.logspace(-2,1,num=numpts) # Time vector for the spectral response
+    if unitsAccel1.lower() == "g":
+        accel = [value*980.665 for value in accel]      # Convert to cm/sec^2
     Sfin= RS_function(accel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, dampoption, Resp_type = 'PSASD')
-    S=Sfin[0,:]*scaleValue(unitsAccel1)
+    if unitsAccel1.lower() == "g":
+        S = Sfin[0,:]/ 980.665  # Convert to cm/sec^2
+    else:
+        S = Sfin[0,:]*scaleValue(unitsAccel1)
     area= round(np.trapezoid(Sfin[0,:],Sfin[1,:])/10000,2)
     ax.set_xlabel('Peak D (cm)')
 
@@ -282,7 +309,10 @@ def adrs(accel,ax):
     x_left, x_right = ax.get_xlim()
     y_low, y_high = ax.get_ylim()
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high)))
-    radialPeriods(1/scaleValue(unitsAccel1), ax)
+    if unitsAccel1.lower() == "g":
+        radialPeriods(980.665, ax)
+    else:
+        radialPeriods(1/scaleValue(unitsAccel1), ax)
     ax.text(x_right/3, y_high/3, str(area) + r"$(m/s)^2$", horizontalalignment='center', fontsize=10, color ='Blue')
     ax.text(0.97, 0.97, 'Damping=' + str(round(dampoption,3)), horizontalalignment='right', verticalalignment='top', fontsize=6, color ='Black',transform=ax.transAxes)
     return(1)
@@ -323,8 +353,8 @@ def on_clickRotD50(ax, xi):
     horRec=np.zeros((2,len(scaledAccel1)))
     placeholder2 = st.empty()
 
-    if "Up" in nameCh1 or "HNZ" in nameCh1:
-        if "360" in nameCh2 or "180" in nameCh2 or "HNN" in nameCh2:
+    if  any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
+        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
             horRec[0,:] = scaledAccel3.copy()
             horRec[1,:] = scaledAccel2.copy()
             horRec1=nameCh3;horRec2=nameCh2
@@ -333,8 +363,8 @@ def on_clickRotD50(ax, xi):
             horRec[1,:] = scaledAccel3.copy()
             horRec1=nameCh2;horRec2=nameCh3
 
-    elif "Up" in nameCh2 or "HNZ" in nameCh2:
-        if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
+    elif any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
             horRec[0,:] = scaledAccel3.copy()
             horRec[1,:] = scaledAccel1.copy()
             horRec1=nameCh3;horRec2=nameCh1
@@ -343,8 +373,8 @@ def on_clickRotD50(ax, xi):
             horRec[1,:] = scaledAccel3.copy()
             horRec1=nameCh1;horRec2=nameCh3
 
-    elif "Up" in nameCh3 or "HNZ" in nameCh3:
-        if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
+    elif any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
             horRec[0,:] = scaledAccel2.copy()
             horRec[1,:] = scaledAccel1.copy()
             horRec1=nameCh2;horRec2=nameCh1
@@ -538,8 +568,8 @@ def d3animate():
     global arate
     arate = 1
 
-    if "up" in nameCh1.lower() or "HNZ" in nameCh1:
-        if "360" in nameCh2 or "180" in nameCh2:
+    if  any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
+        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
             xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
             xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
             x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
@@ -549,8 +579,8 @@ def d3animate():
             xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
             x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
             xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
-    elif "up" in nameCh2.lower() or "HNZ" in nameCh2:
-        if "360" in nameCh1 or "180" in nameCh1:
+    elif any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
             xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
             xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
             x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
@@ -561,8 +591,8 @@ def d3animate():
             x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
             xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
-    elif "up" in nameCh3.lower() or "HNZ" in nameCh3:
-        if "360" in nameCh1 or "180" in nameCh1:
+    elif any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
             xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
             xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
             x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
@@ -730,11 +760,12 @@ if 'clicked' not in st.session_state:
 st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
 st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download free-field records (multiple ok) and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")
-st.write("This app helps read the file and show the recording and create spectra from the recordings")
+st.write("Can also read Peer Ground Motion files from https://ngawest2.berkeley.edu/")
+st.write("This app helps read the file, show the recording and create spectra from the recordings")
 st.write("Orbit plots and Tripartite Spectra options are included.")
 filenames=st.file_uploader("Upload V2/V2c zip file",type=[ "zip"])
 
-V2c = V2 = False
+V2c = V2 = peer = False
 f= None
 f_all=[];f_name=[]
 stationNo = 0
@@ -754,6 +785,10 @@ if filenames != None:
                     f=io.TextIOWrapper(io.BytesIO(archive.read(vfl)))
                     V2 =True
                     break
+                if vfl[-4:].lower()==".at2" or vfl[-4:].lower()==".dt2" or vfl[-4:].lower()==".vt2":
+                    peer= True
+                    f_all.append(io.TextIOWrapper(io.BytesIO(archive.read(vfl))))
+                    f_name.append(vfl)
             if len(f_all) == 0 and f == None:
                 st.write('Error', 'Zip file does not contain freefield .v2 or .V2c file*')
                 st.stop()
@@ -801,7 +836,53 @@ if filenames != None:
 
     placeholder = st.empty()
     EOF =0
-    
+    if peer:
+        placeholder.write("Reading peer file")
+        recnames = [ftemp[:len(ftemp)-7] for ftemp in f_name if ftemp[-4:].lower() in [".at2", ".dt2", ".vt2"]]
+        recnames = [ii for n,ii in enumerate(recnames) if ii not in recnames[:n]]
+        st.write(":red[Multiple files found in the zip file, please select the file to view]")
+        selected_file = st.selectbox("Select file to view", recnames, key="file_select_peer")
+        f_selected = [ftemp for ftemp in f_name if selected_file in ftemp]
+        EOF = 0
+        for index,vfl in enumerate(f_name):
+            if vfl in f_selected:
+                placeholder.write("Reading Peer file " + str(index))
+                if any(x in vfl for x in ["NS.AT2", "-N.AT2", "00.AT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["EW.AT2", "-E.AT2", "90.AT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh2,dtAccel2,numofPointsAccel2,accel2 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["UD.AT2", "-V.AT2", "UP.AT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh3,dtAccel3,numofPointsAccel3,accel3 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["NS.VT2", "-N.VT2", "00.VT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh1,dtVel1,numofPointsVel1,vel1 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["EW.VT2", "-E.VT2", "90.VT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh2,dtVel2,numofPointsVel2,vel2 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["UD.VT2", "-V.VT2", "UP.VT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh3,dtVel3,numofPointsVel3,vel3 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["NS.DT2", "-N.DT2", "00.DT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh1,dtDispl1,numofPointsDispl1,displ1 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["EW.DT2", "-E.DT2", "90.DT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh2,dtDispl2,numofPointsDispl2,displ2 = readFilepeer(f,f_name[index])
+                elif any(x in vfl for x in ["UD.DT2", "-V.DT2", "UP.DT2"]):
+                    f = f_all[index]
+                    recTime,hypocenter,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl3,displ3 = readFilepeer(f,f_name[index])
+                else:
+                    st.write("Error", "File not recognized, exiting")
+                    exit()
+        st.badge("Completed reading Peer files", icon=":material/check:", color="green")
+        unitsAccel1 = unitsAccel2 = unitsAccel3 = "g"
+        unitsVel1 = unitsVel2 = unitsVel3 = "cm/sec"
+        unitsDispl1 = unitsDispl2 = unitsDispl3 = "cm"
+        
+
     if V2c:
         EOF = 0
         for index,vfl in enumerate(f_name):
@@ -909,10 +990,10 @@ if filenames != None:
                 #print(line)
                 numofPointsAccel2 = int(line[0: line.lower().find("points")].strip())
                 dtAccel2 = float(line[line.lower().find("at ") + 3: line.lower().find(" sec")].strip())
-            if '8f10.' in line:
-                unitsAccel2 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
-            else:
-                unitsAccel2 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()
+                if '8f10.' in line:
+                    unitsAccel2 = line[line.lower().find(", in") + 4: line.lower().find(". (")].strip()
+                else:
+                    unitsAccel2 = line[line.lower().find("(units:") + 7: line.lower().find(")")].strip()
             numofLines = lines(numofPointsAccel2)
             accel2 = readchunk(f,numofLines)
 
@@ -999,59 +1080,60 @@ if filenames != None:
     
     st.logo("HXBLogo.png", size="large")
     st.header(recTime)
-    if hypocenter != "":
-        st.subheader("Hypocenter: " + str(hypocenter))  
-        hypolatlong = hypocenter[:hypocenter.find("H")].strip()
-        hypoLatitude = float(hypolatlong[:hypolatlong.find(" ")-1])
-        hypoLongitude = float(hypolatlong[hypolatlong.find(" ")+1: len(hypolatlong)-1].strip())
-        magnitude = hypocenter[hypocenter.find("M")+3:len(hypocenter)].strip()
-        df = pd.DataFrame({"lat":[float(latitude), hypoLatitude], "lon":[float(longitude), hypoLongitude], "color":[[255,0,0],  [0,0,255]], "size":[500, 700], "text": ["Station", "Epicenter, Mw"+magnitude]})
-        view = pdk.data_utils.compute_view(df[["lon", "lat"]])
-    else:
-        df = pd.DataFrame({"lat":[float(latitude)], "lon":[float(longitude)], "color": [[255,0,0]], "size":[500], "text": ["Station"]})
-        view = pdk.ViewState(
-            latitude=float(latitude),
-            longitude=float(longitude),
-            zoom=8,)
-    # st.map(df, color="color", size = "size", use_container_width=True)  
-    
-    st.pydeck_chart(
-    pdk.Deck(
-        #map_style="mapbox://styles/mapbox/light-v11",
-        initial_view_state=view,
-        layers=[
-            pdk.Layer(
-                "ScatterplotLayer",
-                data=df,
-                get_position=["lon", "lat"],
-                get_color="color",
-                get_radius="size",
-                radiusMinPixels=5,
-                radiusMaxPixels=50,
-                pickable=True,
-                ),
-            pdk.Layer(
-                "TextLayer",
-                data=df,
-                get_position=["lon", "lat"],
-                get_color="color",
-                get_text="text",
-                get_size=16,
-                get_text_anchor='"middle"',
-                get_alignment_baseline='"top"',
-                pickable=True,
-                ),
-            ],
+    if latitude != "" and longitude != "":
+        if hypocenter != "":
+            st.subheader("Hypocenter: " + str(hypocenter))  
+            hypolatlong = hypocenter[:hypocenter.find("H")].strip()
+            hypoLatitude = float(hypolatlong[:hypolatlong.find(" ")-1])
+            hypoLongitude = float(hypolatlong[hypolatlong.find(" ")+1: len(hypolatlong)-1].strip())
+            magnitude = hypocenter[hypocenter.find("M")+3:len(hypocenter)].strip()
+            df = pd.DataFrame({"lat":[float(latitude), hypoLatitude], "lon":[float(longitude), hypoLongitude], "color":[[255,0,0],  [0,0,255]], "size":[500, 700], "text": ["Station", "Epicenter, Mw"+magnitude]})
+            view = pdk.data_utils.compute_view(df[["lon", "lat"]])
+        else:
+            df = pd.DataFrame({"lat":[float(latitude)], "lon":[float(longitude)], "color": [[255,0,0]], "size":[500], "text": ["Station"]})
+            view = pdk.ViewState(
+                latitude=float(latitude),
+                longitude=float(longitude),
+                zoom=8,)
+        # st.map(df, color="color", size = "size", use_container_width=True)  
+        
+        st.pydeck_chart(
+        pdk.Deck(
+            #map_style="mapbox://styles/mapbox/light-v11",
+            initial_view_state=view,
+            layers=[
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=df,
+                    get_position=["lon", "lat"],
+                    get_color="color",
+                    get_radius="size",
+                    radiusMinPixels=5,
+                    radiusMaxPixels=50,
+                    pickable=True,
+                    ),
+                pdk.Layer(
+                    "TextLayer",
+                    data=df,
+                    get_position=["lon", "lat"],
+                    get_color="color",
+                    get_text="text",
+                    get_size=16,
+                    get_text_anchor='"middle"',
+                    get_alignment_baseline='"top"',
+                    pickable=True,
+                    ),
+                ],
+            )
         )
-    )
 
 
-    c1, c2 =st.columns(2)
-    with c1:
-        if stationNo != 0 and stationNo.isnumeric():
-            st.link_button("See Instrument Details", 'https://www.strongmotioncenter.org/cgi-bin/CESMD/stationhtml.pl?stationID=CE'+stationNo+'&network=CGS')  
-    with c2:
-        st.link_button("See location of instrument in Google Maps", 'http://www.google.com/maps/place/'+ str(latitude) +','+str(longitude)+'/@'+ str(latitude) +','+str(longitude)+',12z')
+        c1, c2 =st.columns(2)
+        with c1:
+            if stationNo != 0 and stationNo.isnumeric():
+                st.link_button("See Instrument Details", 'https://www.strongmotioncenter.org/cgi-bin/CESMD/stationhtml.pl?stationID=CE'+stationNo+'&network=CGS')  
+        with c2:
+            st.link_button("See location of instrument in Google Maps", 'http://www.google.com/maps/place/'+ str(latitude) +','+str(longitude)+'/@'+ str(latitude) +','+str(longitude)+',12z')
     st.subheader("Recorded Values")
     trigger = min(abs(max(accel1, key=abs))/10,abs(max(accel2, key=abs))/10,abs(max(accel3, key=abs))/10,5)
     # print(float(dtAccel1*numofPointsAccel1), float(startlimAccel(trigger)), float(endlimAccel(trigger)))
@@ -1120,14 +1202,19 @@ if filenames != None:
         amin=minaccel(yV3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
         st.pyplot(fig)
 
+        dfcorr = pd.DataFrame({"Plot 1": yV1, "Plot 2": yV2, "Plot 3": yV3})
+        st.write("Correlation Coefficients:")
+        st.write(dfcorr.corr())
+        
+
+
         st.subheader("Orbit Plots")
         orbitplot = st.checkbox("Create Orbit Plots", key= 'orbitplt')
         if orbitplot:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
 
-
-            if "up" in nameCh1.lower() or "HNZ" in nameCh1:
-                if "360" in nameCh2 or "180" in nameCh2 or "HNN" in nameCh2:
+            if any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
+                if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
                     xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
                     xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
                     x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
@@ -1137,8 +1224,8 @@ if filenames != None:
                     xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
                     x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
                     xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
-            elif "up" in nameCh2.lower() or "HNZ" in nameCh2 :
-                if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
+            elif  any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]) :
+                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
                     xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
                     xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
                     x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
@@ -1149,8 +1236,8 @@ if filenames != None:
                     x = displ1.copy(); y = displ3.copy(); z = displ2.copy()
                     xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
-            elif "up" in nameCh3.lower() or "HNZ" in nameCh3:
-                if "360" in nameCh1 or "180" in nameCh1 or "HNN" in nameCh1:
+            elif  any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]) :
+                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
                     xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
                     xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
                     x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
@@ -1295,7 +1382,7 @@ if filenames != None:
             with cc1:
                 dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt)
             with cc2:
-                numpts= int(st.text_input("Number of Points to use",str("100")))
+                numpts= int(st.text_input("Number of Points to use",str("200")))
             fig5, ax = plt.subplots(3,1,figsize=(width, height*2))
             ax[0].set_title(nameCh1)
             adrs(accel1, ax[0])
@@ -1344,12 +1431,12 @@ if filenames != None:
 
 
     st.subheader("Download Accelerations")
-    wch1 = st.checkbox("Download Acceleration " + nameCh1)
+    wch1 = st.checkbox("Download Acceleration " + nameCh1, key='wch1')
     if EOF == 1:
         wch2 = wch3 = False
     else:
-        wch2 = st.checkbox("Download Accelertaion " + nameCh2)
-        wch3 = st.checkbox("Download Acceleration " + nameCh3)
+        wch2 = st.checkbox("Download Accelertaion " + nameCh2, key='wch2')
+        wch3 = st.checkbox("Download Acceleration " + nameCh3, key='wch3')
     if wch1 or wch2 or wch3:
         text_contents = saveFile()
         st.download_button("Save Acceleration file", text_contents, file_name="accelerations.csv",mime="text/csv",)
@@ -1357,9 +1444,9 @@ if filenames != None:
     if EOF != 1:
         if respsec:
             st.subheader("Download Response Spectra")
-            rch1 = st.checkbox("Download Spectrum " + nameCh1)
-            rch2 = st.checkbox("Download Spectrum" + nameCh2)
-            rch3 = st.checkbox("Download Spectrum " + nameCh3)
+            rch1 = st.checkbox("Download Spectrum " + nameCh1, key='rch1')
+            rch2 = st.checkbox("Download Spectrum" + nameCh2, key='rch2')
+            rch3 = st.checkbox("Download Spectrum " + nameCh3, key='rch3')
             if rch1 or rch2 or rch3:
                 text_contents = rsaveFile()
                 st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)

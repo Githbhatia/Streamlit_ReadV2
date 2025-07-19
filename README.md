@@ -26,4 +26,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 7/13/2025 Removed requirement that the zip archive contain only one free-field record.  Can now download multiple records at a time from CESMD website and pick one to display.
 
+7/18/2025 Can now read PEER formated files form https://ngawest2.berkeley.edu/ - had to revise many parts to accomodate this new format.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

@@ -292,13 +292,8 @@ def orbitplotfn():
 
 def adrs(accel,ax):
     tT = np.logspace(-2,1,num=numpts) # Time vector for the spectral response
-    if unitsAccel1.lower() == "g":
-        accel = [value*980.665 for value in accel]      # Convert to cm/sec^2
     Sfin= RS_function(accel[int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, dampoption, Resp_type = 'PSASD')
-    if unitsAccel1.lower() == "g":
-        S = Sfin[0,:]/ 980.665  # Convert to cm/sec^2
-    else:
-        S = Sfin[0,:]*scaleValue(unitsAccel1)
+    S = Sfin[0,:]*scaleValue(unitsAccel1)
     area= round(np.trapezoid(Sfin[0,:],Sfin[1,:])/10000,2)
     ax.set_xlabel('Peak D (cm)')
 
@@ -309,10 +304,7 @@ def adrs(accel,ax):
     x_left, x_right = ax.get_xlim()
     y_low, y_high = ax.get_ylim()
     ax.set_aspect(abs((x_right-x_left)/(y_low-y_high)))
-    if unitsAccel1.lower() == "g":
-        radialPeriods(980.665, ax)
-    else:
-        radialPeriods(1/scaleValue(unitsAccel1), ax)
+    radialPeriods(1/scaleValue(unitsAccel1), ax)
     ax.text(x_right/3, y_high/3, str(area) + r"$(m/s)^2$", horizontalalignment='center', fontsize=10, color ='Blue')
     ax.text(0.97, 0.97, 'Damping=' + str(round(dampoption,3)), horizontalalignment='right', verticalalignment='top', fontsize=6, color ='Black',transform=ax.transAxes)
     return(1)
@@ -878,7 +870,10 @@ if filenames != None:
                     st.write("Error", "File not recognized, exiting")
                     exit()
         st.badge("Completed reading Peer files", icon=":material/check:", color="green")
-        unitsAccel1 = unitsAccel2 = unitsAccel3 = "g"
+        accel1 = [i * 980.665 for i in accel1]  # Convert to cm/sec^2
+        accel2 = [i * 980.665 for i in accel2]
+        accel3 = [i * 980.665 for i in accel3]
+        unitsAccel1 = unitsAccel2 = unitsAccel3 = "cm/sec2"
         unitsVel1 = unitsVel2 = unitsVel3 = "cm/sec"
         unitsDispl1 = unitsDispl2 = unitsDispl3 = "cm"
         
@@ -1291,6 +1286,7 @@ if filenames != None:
         if arias:
             if "anim" in st.session_state:
                 st.session_state.anim = False
+  
             arias1 = np.cumsum(np.square(accel1)*dtAccel1*np.pi/2/980.665/100)
             arias2 = np.cumsum(np.square(accel2)*dtAccel2*np.pi/2/980.665/100)
             arias3 = np.cumsum(np.square(accel3)*dtAccel3*np.pi/2/980.665/100)

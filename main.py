@@ -1457,8 +1457,9 @@ if filenames != None:
                 text_contents = rsaveFile()
                 st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)
         if rotD50:
-            st.subheader("Download RotD00, Geomean, RotD50 and RotD100 Spectra")
-            st.download_button("Save RotD00, Geomean, RotD50 and RotD100 Spectra file", rot50text, file_name="rotd50spectra.csv",mime="text/csv",)
+            if 'rot50text' in locals():
+                st.subheader("Download RotD00, Geomean, RotD50 and RotD100 Spectra")
+                st.download_button("Save RotD00, Geomean, RotD50 and RotD100 Spectra file", rot50text, file_name="rotd50spectra.csv",mime="text/csv",)
 
 
     if EOF != 1:

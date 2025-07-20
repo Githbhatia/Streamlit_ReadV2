@@ -551,6 +551,19 @@ def on_clickRotD50(ax, xi):
     dfRatios.set_index('Name', inplace=True)
     st.write(dfRatios.round(2)) 
     st.write("The rotation independent measures RotD00, RotD50, RotD100 for ASI, SI, and DSI are calculated from the RotD00, RotD50, RotD100 Spectra, which in turn is computed by taking the minimum, median and maximum of the spectra respectly at each period for all azimuths. The minimum, median and maximum ASI, SI and DSI for all azimuths is also shown for comparison, in the table above.")
+    
+    rot50text = "Damping = " + str(round(xi,3)) + "\n"
+    rot50text += "Time_Period(sec)"
+    rot50text += ", " + "RotD00, Geomean, RotD50, RotD100\n"
+    i = 0
+    while i < len(tT):
+        rot50text += str(round(tT[i],3))
+        rot50text += ", " + str(round(rotD00Spec[0,i],3)) + ", " + str(round(geomeanSpectra[0,i],3)) + ", " + str(round(rotD50Spec[0,i],3)) + ", " + str(round(rotD100Spec[0,i],3))
+        rot50text += "\n"
+        i += 1
+    return(rot50text)
+
+
 
 def click_button():
     st.session_state.clicked = True
@@ -1421,10 +1434,7 @@ if filenames != None:
             ax.set_title("RotD50 Spectra")
             res = st.button("This is a computational intensive process \nand will take some time (3 to 10 mins)\nContinue?",on_click= click_button)
             if st.session_state.clicked:
-                on_clickRotD50(ax,dampoption)
-            
-
-
+                rot50text = on_clickRotD50(ax,dampoption)
 
     st.subheader("Download Accelerations")
     wch1 = st.checkbox("Download Acceleration " + nameCh1, key='wch1')
@@ -1446,6 +1456,10 @@ if filenames != None:
             if rch1 or rch2 or rch3:
                 text_contents = rsaveFile()
                 st.download_button("Save Response Spectra file", text_contents, file_name="respspectra.csv",mime="text/csv",)
+        if rotD50:
+            st.subheader("Download RotD00, Geomean, RotD50 and RotD100 Spectra")
+            st.download_button("Save RotD00, Geomean, RotD50 and RotD100 Spectra file", rot50text, file_name="rotd50spectra.csv",mime="text/csv",)
+
 
     if EOF != 1:
         st.divider()

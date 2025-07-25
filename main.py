@@ -346,7 +346,7 @@ def on_clickRotD50(ax, xi):
     placeholder2 = st.empty()
 
     if  any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
-        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns", "359", "340"]):
             horRec[0,:] = scaledAccel3.copy()
             horRec[1,:] = scaledAccel2.copy()
             horRec1=nameCh3;horRec2=nameCh2
@@ -356,7 +356,7 @@ def on_clickRotD50(ax, xi):
             horRec1=nameCh2;horRec2=nameCh3
 
     elif any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns", "359", "340"]):
             horRec[0,:] = scaledAccel3.copy()
             horRec[1,:] = scaledAccel1.copy()
             horRec1=nameCh3;horRec2=nameCh1
@@ -366,7 +366,7 @@ def on_clickRotD50(ax, xi):
             horRec1=nameCh1;horRec2=nameCh3
 
     elif any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns", "359", "340"]):
             horRec[0,:] = scaledAccel2.copy()
             horRec[1,:] = scaledAccel1.copy()
             horRec1=nameCh2;horRec2=nameCh1
@@ -375,7 +375,7 @@ def on_clickRotD50(ax, xi):
             horRec[1,:] = scaledAccel2.copy()
             horRec1=nameCh1;horRec2=nameCh2
     
-    if "360" in horRec2 or "HNN" in horRec2:
+    if "360" in horRec2 or "HNN" in horRec2 or "359" in horRec2:
         horRec2 = horRec2.replace("360 Deg", "NS")
     elif "180" in horRec2:
         horRec[1,:]=[x*-1 for x in horRec[1,:]]
@@ -383,7 +383,7 @@ def on_clickRotD50(ax, xi):
     
     if "90" in horRec1 or "HNE" in horRec1:
         horRec1 = horRec1.replace("90 Deg", "EW")
-    elif "270" in horRec1:
+    elif "270" in horRec1 or "250" in horRec1:
         horRec[0,:]=[x*-1 for x in horRec[0,:]]
         horRec1 = horRec1.replace("270 Deg", "EW")
 
@@ -574,7 +574,7 @@ def d3animate():
     arate = 1
 
     if  any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
-        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
             xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
             xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
             x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
@@ -585,7 +585,7 @@ def d3animate():
             x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
             xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
     elif any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
             xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
             xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
             x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
@@ -597,7 +597,7 @@ def d3animate():
             xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
     elif any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
             xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
             xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
             x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
@@ -608,9 +608,9 @@ def d3animate():
             x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
             xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
     
-    if "360" in yRec:
+    if "360" in yRec or "359" in yRec or "HNN" in yRec:
         yRec = yRec.replace("360 Deg", "NS")
-    elif "180" in yRec:
+    elif "180" in yRec or "179" in yRec:
         ya[1,:]=[i*-1 for i in ya[1,:]]
         yv[1,:]=[i*-1 for i in yv[1,:]]
         y[1,:]=[i*-1 for i in y[1,:]]
@@ -618,7 +618,7 @@ def d3animate():
     
     if "90" in xRec:
         xRec = xRec.replace("90 Deg", "EW")
-    elif "270" in xRec:
+    elif "270" in xRec or "250" in xRec:
         xa[:]=[i*-1 for i in xa[:]]
         xv[:]=[i*-1 for i in xv[:]]
         x[:]=[i*-1 for i in x[:]]
@@ -766,9 +766,9 @@ st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
 st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download free-field records (multiple ok) and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")
 st.write("Can also read Peer Ground Motion files from https://ngawest2.berkeley.edu/")
-st.write("This app helps read the file, show the recording and create spectra from the recordings")
+st.write("This app helps read the file, show the recording and create spectra from the recordings. Known issues with the app: Where files are named with non-cardinal angles, app is unable to determine which is the NS or EW channel, in such cases, please rename the files to include cardinal angles in the file name. ")
 st.write("Orbit plots and Tripartite Spectra options are included.")
-filenames=st.file_uploader("Upload V2/V2c zip file",type=[ "zip"])
+filenames=st.file_uploader("Upload zip file",type=[ "zip"])
 
 V2c = V2 = peer = False
 f= None
@@ -852,36 +852,36 @@ if filenames != None:
         for index,vfl in enumerate(f_name):
             if vfl in f_selected:
                 placeholder.write("Reading Peer file " + str(index))
-                if any(x in vfl for x in ["NS.AT2", "-N.AT2", "00.AT2"]):
+                if any(x in vfl for x in ["NS.AT2", "-N.AT2", "00.AT2", "360.AT2", "180.AT2","340.AT2", "359.AT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.AT2", "-E.AT2", "90.AT2"]):
+                elif any(x in vfl for x in ["EW.AT2", "-E.AT2", "90.AT2", "270.AT2","250.AT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtAccel2,numofPointsAccel2,accel2 = readFilepeer(f,f_name[index])
                 elif any(x in vfl for x in ["UD.AT2", "-V.AT2", "UP.AT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtAccel3,numofPointsAccel3,accel3 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["NS.VT2", "-N.VT2", "00.VT2"]):
+                elif any(x in vfl for x in ["NS.VT2", "-N.VT2", "00.VT2", "360.VT2", "180.VT2","340.VT2", "359.VT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtVel1,numofPointsVel1,vel1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.VT2", "-E.VT2", "90.VT2"]):
+                elif any(x in vfl for x in ["EW.VT2", "-E.VT2", "90.VT2", "270.VT2","250.VT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtVel2,numofPointsVel2,vel2 = readFilepeer(f,f_name[index])
                 elif any(x in vfl for x in ["UD.VT2", "-V.VT2", "UP.VT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtVel3,numofPointsVel3,vel3 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["NS.DT2", "-N.DT2", "00.DT2"]):
+                elif any(x in vfl for x in ["NS.DT2", "-N.DT2", "00.DT2", "360.DT2", "180.DT2","340.DT2", "359.DT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtDispl1,numofPointsDispl1,displ1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.DT2", "-E.DT2", "90.DT2"]):
+                elif any(x in vfl for x in ["EW.DT2", "-E.DT2", "90.DT2", "270.DT2","250.DT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtDispl2,numofPointsDispl2,displ2 = readFilepeer(f,f_name[index])
                 elif any(x in vfl for x in ["UD.DT2", "-V.DT2", "UP.DT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl3,displ3 = readFilepeer(f,f_name[index])
                 else:
-                    st.write("Error", "File not recognized, exiting")
-                    exit()
+                    st.write("Error:", "File not recognized, exiting")
+                    st.stop()
         st.badge("Completed reading Peer files", icon=":material/check:", color="green")
         accel1 = [i * 980.665 for i in accel1]  # Convert to cm/sec^2
         accel2 = [i * 980.665 for i in accel2]
@@ -1068,7 +1068,7 @@ if filenames != None:
     scale = scaleValue(unitsAccel1) 
     scaledAccel1 = [value*scale for value in accel1]
     if EOF == 0:
-        noofpoints=min(numofPointsAccel1, numofPointsAccel2, numofPointsAccel3)
+        noofpoints=min(numofPointsAccel1, numofPointsAccel2, numofPointsAccel3)-1
         accel1 = accel1[:noofpoints]; vel1 = vel1[:noofpoints]; displ1 = displ1[:noofpoints]
         accel2 = accel2[:noofpoints]; vel2 = vel2[:noofpoints]; displ2 = displ2[:noofpoints]    
         accel3 = accel3[:noofpoints]; vel3 = vel3[:noofpoints]; displ3 = displ3[:noofpoints]
@@ -1078,6 +1078,7 @@ if filenames != None:
         T1 = np.arange(0.0,numofPointsAccel1*dtAccel1, dtAccel1)
         T2 = np.arange(0.0,numofPointsAccel2*dtAccel2, dtAccel2)
         T3 = np.arange(0.0,numofPointsAccel3*dtAccel3, dtAccel3)
+
         scale = scaleValue(unitsAccel1) 
         scaledAccel1 = [value*scale for value in accel1]
         # print(unitsAccel1, unitsAccel2, unitsAccel3 )
@@ -1222,7 +1223,7 @@ if filenames != None:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
 
             if any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
-                if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+                if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
                     xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
                     x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
@@ -1233,7 +1234,7 @@ if filenames != None:
                     x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
                     xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
             elif  any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]) :
-                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
                     xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
                     x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
@@ -1245,7 +1246,7 @@ if filenames != None:
                     xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
             elif  any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]) :
-                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns"]):
+                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
                     xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
                     x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
@@ -1256,7 +1257,7 @@ if filenames != None:
                     x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
                     xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
             
-            if "360" in yRec or "HNN" in yRec:  
+            if "360" in yRec or "HNN" in yRec or "359" in yRec:  
                 yRec = yRec.replace("360 Deg", "NS")
             elif "180" in yRec:
                 ya[1,:]=[i*-1 for i in ya[1,:]]
@@ -1266,7 +1267,7 @@ if filenames != None:
             
             if "90" in xRec or "HNE" in xRec:
                 xRec = xRec.replace("90 Deg", "EW")
-            elif "270" in xRec:
+            elif "270" in xRec or "250" in xRec :
                 xa[:]=[i*-1 for i in xa[:]]
                 xv[:]=[i*-1 for i in xv[:]]
                 x[:]=[i*-1 for i in x[:]]

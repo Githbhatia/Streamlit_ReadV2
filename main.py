@@ -852,28 +852,28 @@ if filenames != None:
         for index,vfl in enumerate(f_name):
             if vfl in f_selected:
                 placeholder.write("Reading Peer file " + str(index))
-                if any(x in vfl for x in ["NS.AT2", "-N.AT2", "00.AT2", "360.AT2", "180.AT2","340.AT2", "359.AT2"]):
+                if any(x in vfl for x in ["NS.AT2", "-N.AT2", "00.AT2", "360.AT2", "180.AT2","340.AT2", "359.AT2","-T.AT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.AT2", "-E.AT2", "90.AT2", "270.AT2","250.AT2"]):
+                elif any(x in vfl for x in ["EW.AT2", "-E.AT2", "90.AT2", "270.AT2","250.AT2", "-L.AT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtAccel2,numofPointsAccel2,accel2 = readFilepeer(f,f_name[index])
                 elif any(x in vfl for x in ["UD.AT2", "-V.AT2", "UP.AT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtAccel3,numofPointsAccel3,accel3 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["NS.VT2", "-N.VT2", "00.VT2", "360.VT2", "180.VT2","340.VT2", "359.VT2"]):
+                elif any(x in vfl for x in ["NS.VT2", "-N.VT2", "00.VT2", "360.VT2", "180.VT2","340.VT2", "359.VT2","-T.VT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtVel1,numofPointsVel1,vel1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.VT2", "-E.VT2", "90.VT2", "270.VT2","250.VT2"]):
+                elif any(x in vfl for x in ["EW.VT2", "-E.VT2", "90.VT2", "270.VT2","250.VT2", "-L.VT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtVel2,numofPointsVel2,vel2 = readFilepeer(f,f_name[index])
                 elif any(x in vfl for x in ["UD.VT2", "-V.VT2", "UP.VT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtVel3,numofPointsVel3,vel3 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["NS.DT2", "-N.DT2", "00.DT2", "360.DT2", "180.DT2","340.DT2", "359.DT2"]):
+                elif any(x in vfl for x in ["NS.DT2", "-N.DT2", "00.DT2", "360.DT2", "180.DT2","340.DT2", "359.DT2","-T.DT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtDispl1,numofPointsDispl1,displ1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.DT2", "-E.DT2", "90.DT2", "270.DT2","250.DT2"]):
+                elif any(x in vfl for x in ["EW.DT2", "-E.DT2", "90.DT2", "270.DT2","250.DT2", "-L.DT2"]):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtDispl2,numofPointsDispl2,displ2 = readFilepeer(f,f_name[index])
                 elif any(x in vfl for x in ["UD.DT2", "-V.DT2", "UP.DT2"]):
@@ -1061,14 +1061,25 @@ if filenames != None:
         placeholder.badge("Completed reading V2 file", icon=":material/check:", color="green")
         hypocenter = ""
 
-
+    sFactor =st.number_input("Scale Value", value=1.0, step=0.1, key="scaleValue ", help="Scale value to apply to the accelerations, velocities and displacements. Default is 1.0, which means no scaling.")
     
+    if sFactor != 1.0:
+        accel1 = [value * sFactor for value in accel1]
+        accel2 = [value * sFactor for value in accel2]
+        accel3 = [value * sFactor for value in accel3]
+        vel1 = [value * sFactor for value in vel1]
+        vel2 = [value * sFactor for value in vel2]
+        vel3 = [value * sFactor for value in vel3]
+        displ1 = [value * sFactor for value in displ1]
+        displ2 = [value * sFactor for value in displ2]
+        displ3 = [value * sFactor for value in displ3]
 
     T1 = np.arange(0.0,numofPointsAccel1*dtAccel1, dtAccel1)
     scale = scaleValue(unitsAccel1) 
     scaledAccel1 = [value*scale for value in accel1]
     if EOF == 0:
-        noofpoints=min(numofPointsAccel1, numofPointsAccel2, numofPointsAccel3)-1
+        noofpoints=min(numofPointsAccel1, numofPointsAccel2, numofPointsAccel3, numofPointsVel1, numofPointsVel2,numofPointsVel3, numofPointsDispl1, numofPointsDispl2, numofPointsDispl3)-5
+
         accel1 = accel1[:noofpoints]; vel1 = vel1[:noofpoints]; displ1 = displ1[:noofpoints]
         accel2 = accel2[:noofpoints]; vel2 = vel2[:noofpoints]; displ2 = displ2[:noofpoints]    
         accel3 = accel3[:noofpoints]; vel3 = vel3[:noofpoints]; displ3 = displ3[:noofpoints]
@@ -1194,18 +1205,21 @@ if filenames != None:
 
         ax[0].set_title(nameCh1)
         ax[0].grid()
+        # print(len(T1), len(yV1))
         ax[0].plot(T1,yV1, label="Channel1", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV1, T1); ax[0].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV1, T1); ax[0].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
 
         ax[1].set_title(nameCh2)
         ax[1].grid()
+        # print(len(T1), len(yV2))
         ax[1].plot(T1,yV2, label="Channel2", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV2, T1); ax[1].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV2, T1); ax[1].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
 
         ax[2].set_title(nameCh3)
         ax[2].grid()
+        # print(len(T1), len(yV3))
         ax[2].plot(T1,yV3, label="Channel3", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV3, T1); ax[2].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')

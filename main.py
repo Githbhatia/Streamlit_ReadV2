@@ -1205,24 +1205,32 @@ if filenames != None:
 
         ax[0].set_title(nameCh1)
         ax[0].grid()
-        # print(len(T1), len(yV1))
+        startt = int(starttime/dtAccel1); endt = int(endtime/dtAccel1)
+        cavaccel1 = np.trapezoid(np.abs(scaledAccel1[startt:endt]), T1[startt:endt])
+        print(cavaccel1)
         ax[0].plot(T1,yV1, label="Channel1", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV1, T1); ax[0].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV1, T1); ax[0].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
+        ax[0].text(0.97, 0.97, 'CAV = ' + str(round(cavaccel1,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[0].transAxes)
+        
 
         ax[1].set_title(nameCh2)
         ax[1].grid()
+        cavaccel2 = np.trapezoid(np.abs(scaledAccel2[startt:endt]), T1[startt:endt])
         # print(len(T1), len(yV2))
         ax[1].plot(T1,yV2, label="Channel2", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV2, T1); ax[1].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV2, T1); ax[1].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
+        ax[1].text(0.97, 0.97, 'CAV = ' + str(round(cavaccel2,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[1].transAxes)
 
         ax[2].set_title(nameCh3)
         ax[2].grid()
+        cavaccel3 = np.trapezoid(np.abs(scaledAccel3[startt:endt]), T1[startt:endt])
         # print(len(T1), len(yV3))
         ax[2].plot(T1,yV3, label="Channel3", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV3, T1); ax[2].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
+        ax[2].text(0.97, 0.97, 'CAV = ' + str(round(cavaccel3,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[2].transAxes)
         st.pyplot(fig)
 
         dfcorr = pd.DataFrame({"Plot 1": yV1, "Plot 2": yV2, "Plot 3": yV3})

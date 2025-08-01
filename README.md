@@ -30,6 +30,8 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 7/19/2025 Added option to write RotD spectra to a file.
 
-7/30/2025 Added CAV calculations.
+7/30/2025 Added CAV calculations - implemented standard CAV calculations.
+
+8/1/2025 Add options for Spectragrams - available for accelerations, velocity or displacment signals.
 
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

@@ -10,6 +10,7 @@ import math
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
 import pydeck as pdk
+from scipy import signal
 
 @st.cache_data
 def readFileV2c(_f, f_name):
@@ -756,7 +757,30 @@ def update_plot(frame,ax,x,y,z,alltrace,zd,zmin,zdispRange,dt,st):
 
     return()
 
-
+def cav(T, Y, std="std"):
+    cav = 0.0
+    t0 = math.ceil(T[0]); te = math.floor(T[-1])
+    if std != "std":
+        cav = np.trapezoid(np.abs(Y[:len(Y)]), T[:len(Y)]) 
+    else:
+        # print(t0, te)
+        for i in range(t0, te, 1):
+            starttime = float(i)
+            endtime = float(i + 1.0)
+            # print(starttime, endtime)
+            heaviSide = np.max(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1])) >= 0.025
+            cav += np.trapezoid(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]), T[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]) if heaviSide else 0.0
+        if T[0] < t0:
+            starttime = float(T[0])
+            endtime = float(t0)
+            heaviSide = np.max(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1])) >= 0.025
+            cav += np.trapezoid(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]), T[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]) if heaviSide else 0.0
+        if T[-1] > te:
+            starttime = float(te)
+            endtime = float(T[-1])
+            heaviSide = np.max(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1])) >= 0.025
+            cav += np.trapezoid(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]), T[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]) if heaviSide else 0.0
+    return cav
 
 # Title
 if 'clicked' not in st.session_state:
@@ -1078,7 +1102,7 @@ if filenames != None:
     scale = scaleValue(unitsAccel1) 
     scaledAccel1 = [value*scale for value in accel1]
     if EOF == 0:
-        noofpoints=min(numofPointsAccel1, numofPointsAccel2, numofPointsAccel3, numofPointsVel1, numofPointsVel2,numofPointsVel3, numofPointsDispl1, numofPointsDispl2, numofPointsDispl3)-5
+        noofpoints=min(len(accel1), len(vel1), len(displ1), len(accel2), len(vel2), len(displ2), len(accel3), len(vel3), len(displ3))
 
         accel1 = accel1[:noofpoints]; vel1 = vel1[:noofpoints]; displ1 = displ1[:noofpoints]
         accel2 = accel2[:noofpoints]; vel2 = vel2[:noofpoints]; displ2 = displ2[:noofpoints]    
@@ -1163,7 +1187,11 @@ if filenames != None:
     # width = st.sidebar.slider("plot width", 1, 25, 10)
     # height = st.sidebar.slider("plot height", 1, 10, 8)
     width = 10; height = 8
-    doption = st.selectbox("Plot",("Accel", "Vel", "Disp"),)
+    c1, c2 = st.columns(2)
+    with c1:
+        doption = st.selectbox("Plot",("Accel", "Vel", "Disp"),)
+    with c2:
+        spectrogram = st.toggle("Show Spectrogram", key="accelSpec", help="Spectrograms show the frequency content of the signal over time. This is useful to see how the frequency content changes during the recording.")
 
     if EOF == 1:
         if doption =="Disp":
@@ -1206,32 +1234,52 @@ if filenames != None:
         ax[0].set_title(nameCh1)
         ax[0].grid()
         startt = int(starttime/dtAccel1); endt = int(endtime/dtAccel1)
-        cavaccel1 = np.trapezoid(np.abs(scaledAccel1[startt:endt]), T1[startt:endt])
-        print(cavaccel1)
+        
+        cavaccel1std = cav(T1[startt:endt], scaledAccel1[startt:endt])
         ax[0].plot(T1,yV1, label="Channel1", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV1, T1); ax[0].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV1, T1); ax[0].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
-        ax[0].text(0.97, 0.97, 'CAV = ' + str(round(cavaccel1,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[0].transAxes)
-        
+        ax[0].text(0.97, 0.97, 'CAV(STD) = ' + str(round(cavaccel1std,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[0].transAxes)
 
         ax[1].set_title(nameCh2)
         ax[1].grid()
-        cavaccel2 = np.trapezoid(np.abs(scaledAccel2[startt:endt]), T1[startt:endt])
+
+        cavaccel2std = cav(T1[startt:endt], scaledAccel2[startt:endt])
         # print(len(T1), len(yV2))
         ax[1].plot(T1,yV2, label="Channel2", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV2, T1); ax[1].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV2, T1); ax[1].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
-        ax[1].text(0.97, 0.97, 'CAV = ' + str(round(cavaccel2,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[1].transAxes)
+        ax[1].text(0.97, 0.97, 'CAV(STD) = ' + str(round(cavaccel2std,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[1].transAxes)
 
         ax[2].set_title(nameCh3)
         ax[2].grid()
-        cavaccel3 = np.trapezoid(np.abs(scaledAccel3[startt:endt]), T1[startt:endt])
+
+        cavaccel3std = cav(T1[startt:endt], scaledAccel3[startt:endt])
         # print(len(T1), len(yV3))
         ax[2].plot(T1,yV3, label="Channel3", color= 'Red', linewidth=1.0)
         amax=maxaccel(yV3, T1); ax[2].annotate(str(round(amax[1],3)), xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
         amin=minaccel(yV3, T1); ax[2].annotate(str(round(amin[1],3)), xy=(amin[0], amin[1]), xytext=(amin[0], amin[1]), verticalalignment='top')
-        ax[2].text(0.97, 0.97, 'CAV = ' + str(round(cavaccel3,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[2].transAxes)
+        ax[2].text(0.97, 0.97, 'CAV(STD) = ' + str(round(cavaccel3std,3))+ "g-sec", horizontalalignment='right', verticalalignment='top', fontsize=9, color ='Blue',transform=ax[2].transAxes)
+
         st.pyplot(fig)
+
+        if spectrogram:
+            st.write("Spectrograms of signal, colors represent intensity in dB")
+            figspc, axpec = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
+            axpec[0].specgram(yV1, Fs=1.0/dtAccel1, cmap='turbo')
+            axpec[0].set_title(nameCh1)
+            axpec[1].specgram(yV2, Fs=1.0/dtAccel2, cmap='turbo')
+            axpec[1].set_title(nameCh2)
+            axpec[2].specgram(yV3, Fs=1.0/dtAccel3, cmap='turbo')
+            axpec[2].set_title(nameCh3)
+            axpec[0].set_ylabel('Frequency [Hz]')
+            axpec[1].set_ylabel('Frequency [Hz]')
+            axpec[2].set_ylabel('Frequency [Hz]')
+            axpec[2].set_xlabel('Time [sec]')
+            axpec[2].set_xlim(starttime,endtime)
+            endFreq = 1.0/dtAccel1/2
+            axpec[0].set_ylim([0, endFreq])
+            st.pyplot(figspc)
 
         dfcorr = pd.DataFrame({"Plot 1": yV1, "Plot 2": yV2, "Plot 3": yV3})
         st.write("Correlation Coefficients:")

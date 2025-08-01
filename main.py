@@ -10,7 +10,6 @@ import math
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
 import pydeck as pdk
-from scipy import signal
 
 @st.cache_data
 def readFileV2c(_f, f_name):
@@ -1541,4 +1540,5 @@ if filenames != None:
 
             st.write("This animation shows the recorded displacement in the three channels")
             d3animate()
+
 

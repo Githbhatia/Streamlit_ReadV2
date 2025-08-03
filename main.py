@@ -11,6 +11,7 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
 import pydeck as pdk
 
+
 @st.cache_data
 def readFileV2c(_f, f_name):
     for line in islice(f, 1, 2):   
@@ -228,7 +229,7 @@ def tripartitegrids(scale,plt,ax,xl,xr):
                 ax.annotate(m, xy=(t,v), xytext=(t,v), ha='left', va="top",fontsize=5, color= 'm')
     return(1)
 
-def resSpectrafn(accel,ax,rU,rT,channel):
+def resSpectrafn(accel,ax,rU,rT,channel,loglog=False):
     Sfin=[]
     for i in range(0,len(xi)):
         Sfin= RS_function(accel[int(starttime/dtAccel1):int(endtime/dtAccel1)], df, tT, xi[i], Resp_type = rT)
@@ -238,7 +239,10 @@ def resSpectrafn(accel,ax,rU,rT,channel):
             sAll[channel,i,:]=Sfin[0,:]
         amax=[tT[np.argmax(abs(sAll[channel,i,:]))], max(abs(sAll[channel,i,:]))]
         labl = "Damping = "+ str(round(xi[i],3))+ ": Max at "+ str(round(amax[0],3)) +"sec, "+str(round(amax[1],2)) + rU
-        ax.plot(tT,sAll[channel,i,:],label=labl,linewidth=1.0)
+        if loglog:
+            ax.loglog(tT,sAll[channel,i,:],label=labl,linewidth=1.0)
+        else:
+            ax.plot(tT,sAll[channel,i,:],label=labl,linewidth=1.0)
         
     ax.grid()
     ax.set_ylabel(rL)
@@ -442,14 +446,25 @@ def on_clickRotD50(ax, xi):
     Sfin1= RS_function(horRec[0,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'PSA')
     Sfin2= RS_function(horRec[1,:][int(float(starttime/dtAccel1)):int(float(endtime)/dtAccel1)], df, tT, xi, Resp_type = 'PSA')
     geomeanSpectra = np.sqrt(np.array(Sfin1[0:])*np.array(Sfin2[0,:]))
+    logolog2 = st.checkbox("Log-Log Plot", key='loglog2', help="If checked, the plot will be displayed in log-log scale.")
     ax.set_xlabel('Period (secs)')
     ax.set_ylabel('PSA (g)')
-    ax.plot(tT,rotD50Spec[0],color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
-    ax.plot(tT,rotD100Spec[0],color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
-    ax.plot(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
-    ax.plot(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
 
-    plt.legend(loc="center right",fontsize = 'x-small')
+    if logolog2:
+        ax.loglog(tT,rotD50Spec[0],color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
+        ax.loglog(tT,rotD100Spec[0],color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
+        ax.loglog(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
+        ax.loglog(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
+        plt.legend(loc="lower left",fontsize = 'x-small')
+    else:
+        ax.plot(tT,rotD50Spec[0],color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
+        ax.plot(tT,rotD100Spec[0],color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
+        ax.plot(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
+        ax.plot(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
+        plt.legend(loc="center right",fontsize = 'x-small')
+
+
+    
     ax.text(0.97, 0.97, 'Damping=' + str(round(xi,3)), horizontalalignment='right', verticalalignment='top', fontsize=6, color ='Black',transform=ax.transAxes)
     ax.grid()
     st.pyplot(fig6)
@@ -1265,11 +1280,11 @@ if filenames != None:
         if spectrogram:
             st.write("Spectrograms of signal, colors represent intensity in dB")
             figspc, axpec = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
-            axpec[0].specgram(yV1, Fs=1.0/dtAccel1, cmap='turbo')
+            spectrum, freqs, tm, im =axpec[0].specgram(yV1, Fs=1.0/dtAccel1, cmap='turbo')
             axpec[0].set_title(nameCh1)
-            axpec[1].specgram(yV2, Fs=1.0/dtAccel2, cmap='turbo')
+            spectrum, freqs, tm, im =axpec[1].specgram(yV2, Fs=1.0/dtAccel2, cmap='turbo')
             axpec[1].set_title(nameCh2)
-            axpec[2].specgram(yV3, Fs=1.0/dtAccel3, cmap='turbo')
+            spectrum, freqs, tm, im =axpec[2].specgram(yV3, Fs=1.0/dtAccel3, cmap='turbo')
             axpec[2].set_title(nameCh3)
             axpec[0].set_ylabel('Frequency [Hz]')
             axpec[1].set_ylabel('Frequency [Hz]')
@@ -1278,6 +1293,7 @@ if filenames != None:
             axpec[2].set_xlim(starttime,endtime)
             endFreq = 1.0/dtAccel1/2
             axpec[0].set_ylim([0, endFreq])
+            axcb = figspc.colorbar(im, ax=axpec.ravel().tolist(), pad=0.1, aspect = 30,location = 'bottom')
             st.pyplot(figspc)
 
         dfcorr = pd.DataFrame({"Plot 1": yV1, "Plot 2": yV2, "Plot 3": yV3})
@@ -1287,7 +1303,7 @@ if filenames != None:
 
 
         st.subheader("Orbit Plots")
-        orbitplot = st.checkbox("Create Orbit Plots", key= 'orbitplt')
+        orbitplot = st.checkbox("Create Orbit Plots", key= 'orbitplt', help = "Orbit plots show the relationship between the two horizontal channels. They are useful to visualize the ground motion in the horizontal plane.")
         if orbitplot:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
 
@@ -1364,7 +1380,7 @@ if filenames != None:
 
 
         st.subheader("Arias Intensity")
-        arias = st.checkbox("Create Arias Intensity", key='ariasintensity')   
+        arias = st.checkbox("Create Arias Intensity", key='ariasintensity', help="Arias Intensity is a measure of the strength of a ground motion. D5-75 and D5-95 are included which are the time intervals between 5% and 75% and 5% and 95% of the Arias Intensity, respectively.")
 
         if arias:
             if "anim" in st.session_state:
@@ -1402,7 +1418,7 @@ if filenames != None:
             st.pyplot(figA)
         
         st.subheader("Response Spectra")
-        tab1, tab2, tab3 = st.tabs(["Type of Spectra", "Damping", "End Period"])
+        tab1, tab2, tab3, tab4 = st.tabs(["Type of Spectra", "Damping", "End Period", "Plot Type"])
         with tab1:
             option = st.selectbox("Type of Spectra",("Accel", "Vel", "Disp"),)
         with tab2:
@@ -1410,12 +1426,14 @@ if filenames != None:
             xi =[float(i) for i in xiStr.split(",")]
         with tab3:
             endPeriod = st.number_input("End Period for Spectra", value = 6.0, min_value = 5.0, step = 0.5)
-
+        with tab4:
+            loglog = st.checkbox("Log-Log Plot", key='loglogSpectra', help="If checked, the response spectra will be plotted in log-log scale. Otherwise, it will be linear scale.")
+        st.divider()
         tT = np.concatenate( (np.arange(0.05, 0.1, 0.005) , np.arange (0.1, 0.5, 0.01) , np.arange (0.5, 1, 0.02) , np.arange (1, endPeriod, 0.05) ) ) # Time vector for the spectral response
-        freq = 1/tT # Frequenxy vector
+        freq = 1/tT # Frequency vector
         df = 1.0/dtAccel1
         
-        respsec = st.checkbox("Create Response Spectra", key = 'respSpectra')
+        respsec = st.checkbox("Create Response Spectra", key = 'respSpectra', help="if checked, response spectra will be created with option selected above")
         if respsec:
             if "anim" in st.session_state:
                 st.session_state.anim = False
@@ -1439,15 +1457,15 @@ if filenames != None:
                 rU ='g'
 
             ax[0].set_title(nameCh1)
-            resSpectrafn(accel1,ax[0],rU,rT,0)
+            resSpectrafn(accel1,ax[0],rU,rT,0,loglog)
             ax[0].legend()
             
             ax[1].set_title(nameCh2)
-            resSpectrafn(accel2,ax[1],rU,rT,1)
+            resSpectrafn(accel2,ax[1],rU,rT,1,loglog)
             ax[1].legend()
 
             ax[2].set_title(nameCh3)
-            resSpectrafn(accel3,ax[2],rU,rT,2)
+            resSpectrafn(accel3,ax[2],rU,rT,2,loglog)
             ax[2].set_xlabel('Period (secs)')
             ax[2].legend()
             st.pyplot(fig2)
@@ -1462,7 +1480,7 @@ if filenames != None:
                 dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt)
             with cc2:
                 numpts= int(st.text_input("Number of Points to use",str("200")))
-            fig5, ax = plt.subplots(3,1,figsize=(width, height*2))
+            fig5, ax = plt.subplots(3,1,figsize=(width, height*2.5))
             ax[0].set_title(nameCh1)
             adrs(accel1, ax[0])
             ax[0].set_ylabel('Peak PSA (g)')
@@ -1477,7 +1495,7 @@ if filenames != None:
 
             st.pyplot(fig5)
 
-        respsec2 = st.checkbox("Create Tripartite Spectra", key='TripartiteSpectra')
+        respsec2 = st.checkbox("Create Tripartite Spectra", key='TripartiteSpectra', help = "Tripartite spectra show the relative displacement, velocity and acceleration all on one graph.")
         if respsec2:
             if "anim" in st.session_state:
                 st.session_state.anim = False
@@ -1493,8 +1511,8 @@ if filenames != None:
             ax[2].legend(loc='upper right')
             st.pyplot(fig3)
 
-        rotD50 = st.checkbox("Create Acceleration RotD50 Spectra (ASI,SI,DSI included)", key='rotD50Spectra')
- 
+        rotD50 = st.checkbox("Create Acceleration RotD50 Spectra (ASI,SI,DSI included)", key='rotD50Spectra', help= "RotD50 = Median value of the geometric mean of the two horizontalcomponents rotated through all nonredundant period-independent angles (Boore et al., 2006)")
+
         if rotD50:
             if "anim" in st.session_state:
                 st.session_state.anim = False
@@ -1540,5 +1558,4 @@ if filenames != None:
 
             st.write("This animation shows the recorded displacement in the three channels")
             d3animate()
-
 

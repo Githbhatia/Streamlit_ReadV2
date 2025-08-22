@@ -34,4 +34,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 8/1/2025 Add options for Spectragrams - available for accelerations, velocity or displacment signals.
 
+8/22/2025 Added code to ask user to help identify components if directions are not clear for PEER records.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

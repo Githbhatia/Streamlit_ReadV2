@@ -887,39 +887,69 @@ if filenames != None:
         selected_file = st.selectbox("Select file to view", recnames, key="file_select_peer")
         f_selected = [ftemp for ftemp in f_name if selected_file in ftemp]
         EOF = 0
+        nsfiles = ["NS", "-N", "00", "360", "180","340", "359","-T"]
+        ewfiles = ["EW", "-E", "90", "270","250", "-L"]
+        udfiles = ["UD", "-V", "UP"]
         for index,vfl in enumerate(f_name):
             if vfl in f_selected:
+                selected_direction = None
                 placeholder.write("Reading Peer file " + str(index))
-                if any(x in vfl for x in ["NS.AT2", "-N.AT2", "00.AT2", "360.AT2", "180.AT2","340.AT2", "359.AT2","-T.AT2"]):
+                if not any(x in vfl for x in nsfiles+ewfiles+udfiles) and any(x in vfl for x in ["AT2", "DT2", "VT2"]):
+                    st.write("Error:", "Cannot determine direction of components")
+                    st.write("You must pick direction to proceed:", vfl)
+                    selected_direction = st.selectbox("Select direction", ["NS", "EW", "UD"], key="direction_select_peer"+ str(index))
+                    vfl = vfl.replace(".", selected_direction + "." )
+                if any(x + ".AT2" in vfl for x in nsfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtAccel1,numofPointsAccel1,accel1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.AT2", "-E.AT2", "90.AT2", "270.AT2","250.AT2", "-L.AT2"]):
+                    if selected_direction != None:
+                        nameCh1 = nameCh1 + "." + selected_direction
+                elif any(x + ".AT2" in vfl for x in ewfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtAccel2,numofPointsAccel2,accel2 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["UD.AT2", "-V.AT2", "UP.AT2"]):
+                    if selected_direction != None:
+                        nameCh2 = nameCh2 + "." + selected_direction
+                elif any(x + ".AT2" in vfl for x in udfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtAccel3,numofPointsAccel3,accel3 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["NS.VT2", "-N.VT2", "00.VT2", "360.VT2", "180.VT2","340.VT2", "359.VT2","-T.VT2"]):
+                    if selected_direction != None:
+                        nameCh3 = nameCh3 + "." + selected_direction
+                elif any(x + ".VT2" in vfl for x in nsfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtVel1,numofPointsVel1,vel1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.VT2", "-E.VT2", "90.VT2", "270.VT2","250.VT2", "-L.VT2"]):
+                    if selected_direction != None:
+                        nameCh1 = nameCh1 + "." + selected_direction    
+                elif any(x + ".VT2" in vfl for x in ewfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtVel2,numofPointsVel2,vel2 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["UD.VT2", "-V.VT2", "UP.VT2"]):
+                    if selected_direction != None:
+                        nameCh2 = nameCh2 + "." + selected_direction
+                elif any(x + ".VT2" in vfl for x in udfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtVel3,numofPointsVel3,vel3 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["NS.DT2", "-N.DT2", "00.DT2", "360.DT2", "180.DT2","340.DT2", "359.DT2","-T.DT2"]):
+                    if selected_direction != None:
+                        nameCh3 = nameCh3 + "." + selected_direction
+                elif any(x + ".DT2" in vfl for x in nsfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh1,dtDispl1,numofPointsDispl1,displ1 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["EW.DT2", "-E.DT2", "90.DT2", "270.DT2","250.DT2", "-L.DT2"]):
+                    if selected_direction != None:
+                        nameCh1 = nameCh1 + "." + selected_direction
+                elif any(x + ".DT2" in vfl for x in ewfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh2,dtDispl2,numofPointsDispl2,displ2 = readFilepeer(f,f_name[index])
-                elif any(x in vfl for x in ["UD.DT2", "-V.DT2", "UP.DT2"]):
+                    if selected_direction != None:
+                        nameCh2 = nameCh2 + "." + selected_direction
+                elif any(x + ".DT2" in vfl for x in udfiles):
                     f = f_all[index]
                     recTime,hypocenter,latitude,longitude,nameCh3,dtDispl3,numofPointsDispl3,displ3 = readFilepeer(f,f_name[index])
+                    if selected_direction != None:
+                        nameCh3 = nameCh3 + "." + selected_direction
                 else:
                     st.write("Error:", "File not recognized, exiting")
                     st.stop()
+        if 'accel2' not in locals() or 'accel3' not in locals() or 'vel2' not in locals() or 'vel3' not in locals() or 'displ2' not in locals() or 'displ3' not in locals():
+            st.write("Error:", " Cannot find acceleration data")
+            st.stop()
         st.badge("Completed reading Peer files", icon=":material/check:", color="green")
         accel1 = [i * 980.665 for i in accel1]  # Convert to cm/sec^2
         accel2 = [i * 980.665 for i in accel2]

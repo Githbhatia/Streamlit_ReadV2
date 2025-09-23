@@ -597,7 +597,7 @@ def d3animate():
         else:
             xa = scaledAccel2.copy(); ya = scaledAccel3.copy(); za = scaledAccel1.copy()
             xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
-            x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
+            x = displ2.copy(); y = displ3.copy(); z = displ1.copy()
             xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
     elif any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]):
         if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
@@ -1588,5 +1588,6 @@ if filenames != None:
 
             st.write("This animation shows the recorded displacement in the three channels")
             d3animate()
+
 
 

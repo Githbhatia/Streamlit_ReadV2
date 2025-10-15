@@ -350,7 +350,7 @@ def on_clickRotD50(ax, xi):
     placeholder2 = st.empty()
 
     if  any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
-        if any(x in nameCh2.lower() for x in ["360", "180", "hnn", "00","-n", "ns", "359", "340"]):
+        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns", "359", "340"]):
             horRec[0,:] = scaledAccel3.copy()
             horRec[1,:] = scaledAccel2.copy()
             horRec1=nameCh3;horRec2=nameCh2
@@ -360,7 +360,7 @@ def on_clickRotD50(ax, xi):
             horRec1=nameCh2;horRec2=nameCh3
 
     elif any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "hnn", "00","-n", "ns", "359", "340"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns", "359", "340"]):
             horRec[0,:] = scaledAccel3.copy()
             horRec[1,:] = scaledAccel1.copy()
             horRec1=nameCh3;horRec2=nameCh1
@@ -370,7 +370,7 @@ def on_clickRotD50(ax, xi):
             horRec1=nameCh1;horRec2=nameCh3
 
     elif any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "hnn", "00","-n", "ns", "359", "340"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns", "359", "340"]):
             horRec[0,:] = scaledAccel2.copy()
             horRec[1,:] = scaledAccel1.copy()
             horRec1=nameCh2;horRec2=nameCh1
@@ -589,7 +589,7 @@ def d3animate():
     arate = 1
 
     if  any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
-        if any(x in nameCh2.lower() for x in ["360", "180", "hnn", "00","-n", "ns","340", "359"]):
+        if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
             xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
             xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
             x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
@@ -597,10 +597,10 @@ def d3animate():
         else:
             xa = scaledAccel2.copy(); ya = scaledAccel3.copy(); za = scaledAccel1.copy()
             xv = vel2.copy(); yv = vel3.copy(); zv = vel1.copy()
-            x = displ2.copy(); y = displ3.copy(); z = displ1.copy()
+            x = displ2.copy(); y = displ2.copy(); z = displ1.copy()
             xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
     elif any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "hnn", "00","-n", "ns","340", "359"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
             xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
             xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
             x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
@@ -612,7 +612,7 @@ def d3animate():
             xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
     elif any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]):
-        if any(x in nameCh1.lower() for x in ["360", "180", "hnn", "00","-n", "ns","340", "359"]):
+        if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
             xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
             xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
             x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
@@ -626,9 +626,9 @@ def d3animate():
     if "360" in yRec or "359" in yRec or "HNN" in yRec:
         yRec = yRec.replace("360 Deg", "NS")
     elif "180" in yRec or "179" in yRec:
-        ya[1,:]=[i*-1 for i in ya[1,:]]
-        yv[1,:]=[i*-1 for i in yv[1,:]]
-        y[1,:]=[i*-1 for i in y[1,:]]
+        ya[:]=[i*-1 for i in ya[:]]
+        yv[:]=[i*-1 for i in yv[:]]
+        y[:]=[i*-1 for i in y[:]]
         yRec = yRec.replace("180 Deg", "NS")
     
     if "90" in xRec:
@@ -1338,7 +1338,7 @@ if filenames != None:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
 
             if any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
-                if any(x in nameCh2.lower() for x in ["360", "180", "hnn", "00","-n", "ns","340", "359"]):
+                if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
                     xv = vel3.copy(); yv = vel2.copy(); zv = vel1.copy()
                     x = displ3.copy(); y = displ2.copy(); z = displ1.copy()
@@ -1349,7 +1349,7 @@ if filenames != None:
                     x = displ2.copy(); y = displ3.copy(); z = displ1.copy()
                     xRec=nameCh2;yRec=nameCh3;zRec=nameCh1
             elif  any(x in nameCh2.lower() for x in ["up", "hnz", "-v", "ud"]) :
-                if any(x in nameCh1.lower() for x in ["360", "180", "hnn", "00","-n", "ns","340", "359"]):
+                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel3.copy(); ya = scaledAccel1.copy(); za = scaledAccel2.copy()
                     xv = vel3.copy(); yv = vel1.copy(); zv = vel2.copy()
                     x = displ3.copy(); y = displ1.copy(); z = displ2.copy()
@@ -1361,7 +1361,7 @@ if filenames != None:
                     xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
             elif  any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]) :
-                if any(x in nameCh1.lower() for x in ["360", "180", "hnn", "00","-n", "ns","340", "359"]):
+                if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
                     xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
                     x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
@@ -1375,9 +1375,9 @@ if filenames != None:
             if "360" in yRec or "HNN" in yRec or "359" in yRec:  
                 yRec = yRec.replace("360 Deg", "NS")
             elif "180" in yRec:
-                ya[1,:]=[i*-1 for i in ya[1,:]]
-                yv[1,:]=[i*-1 for i in yv[1,:]]
-                y[1,:]=[i*-1 for i in y[1,:]]
+                ya[:]=[i*-1 for i in ya[:]]
+                yv[:]=[i*-1 for i in yv[:]]
+                y[:]=[i*-1 for i in y[:]]
                 yRec = yRec.replace("180 Deg", "NS")
             
             if "90" in xRec or "HNE" in xRec:
@@ -1588,7 +1588,4 @@ if filenames != None:
 
             st.write("This animation shows the recorded displacement in the three channels")
             d3animate()
-
-
-
 

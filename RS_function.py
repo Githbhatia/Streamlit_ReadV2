@@ -77,4 +77,60 @@ def RS_function(data, delta, T, xi, Resp_type):
             S[2,j] = np.max(np.abs(u1)) 
 
     return S
+"""
+Created on Wed October 22 2025
+@author: HXB
+Calculates D5-75 as a function of period
+1. Calculate response using Duhamel integration for a given SDOF system with unit mass and period
+2. Compute Arias intensity of response, normalize and compute D5-75
+3. Repeat for next SDOF system with direct period
+Inputs:
+    data = accelation time history
+    delta = sampling delta period
+    T = vector of periods for which to compute D5-75
+    xi = damping ratio
 
+"""
+
+@st.cache_data
+def durt_function(data, delta, T, xi):
+
+    dt = 1/delta 
+    T1 = np.arange(0.0,len(data)*dt, dt)
+    w = 2*np.pi/T 
+    mass = 1 #  constant mass (=1)
+    c = 2*xi*w*mass
+    wd = w*np.sqrt(1-xi**2)
+    p1 = np.multiply(data, -mass)
+    
+    # predefine output matrices
+
+    S=np.zeros((2,len(T)))
+    D1 = np.zeros(len(T))
+    for j in np.arange(len(T)):
+        # Duhamel time domain matrix form
+        I0 = 1/w[j]**2*(1-np.exp(-xi*w[j]*dt)*(xi*w[j]/wd[j]*np.sin(wd[j]*dt)+np.cos(wd[j]*dt)))
+        J0 = 1/w[j]**2*(xi*w[j]+np.exp(-xi*w[j]*dt)*(-xi*w[j]*np.cos(wd[j]*dt)+wd[j]*np.sin(wd[j]*dt)))
+        
+        AA = [[np.exp(-xi*w[j]*dt)*(np.cos(wd[j]*dt)+xi*w[j]/wd[j]*np.sin(wd[j]*dt)) , np.exp(-xi*w[j]*dt)*np.sin(wd[j]*dt)/wd[j] ] , 
+               [-w[j]**2*np.exp(-xi*w[j]*dt)*np.sin(wd[j]*dt)/wd[j] ,np.exp(-xi*w[j]*dt)*(np.cos(wd[j]*dt)-xi*w[j]/wd[j]*np.sin(wd[j]*dt)) ]]
+        BB = [[I0*(1+xi/w[j]/dt)+J0/w[j]**2/dt-1/w[j]**2 , -xi/w[j]/dt*I0-J0/w[j]**2/dt+1/w[j]**2 ] ,
+            [J0-(xi*w[j]+1/dt)*I0, I0/dt] ]
+        
+        u1 = np.zeros(len(data))
+        udre1 = np.zeros(len(data));
+        for xx in range(1,len(data),1) :
+           
+            u1[xx] = AA[0][0]*u1[xx-1] + AA[0][1]*udre1[xx-1] + BB[0][0]*p1[xx-1] + BB[0][1]*p1[xx]
+            udre1[xx] = AA[1][0]*u1[xx-1] + AA[1][1]*udre1[xx-1] + BB[1][0]*p1[xx-1] + BB[1][1]*p1[xx]
+       
+
+        udd1 = -(w[j]**2*u1+c[j]*udre1)-data  # calculate acceleration
+        x = udd1+data
+        arias = np.cumsum(np.square(x)*dt*np.pi/2/980.665/100)
+        normarias = arias/np.max(arias)
+        S[0,j] = round(T1[np.argmax(normarias > 0.75)] - T1[np.argmax(normarias > 0.05)],3)
+        S[1,j] = round(T1[np.argmax(normarias > 0.95)] - T1[np.argmax(normarias > 0.05)],3)
+        # print(len(data))
+
+    return S

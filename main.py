@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 import zipfile, io
 from itertools import islice
 import pandas as pd
-from RS_function import RS_function
+from RS_function import RS_function, durt_function
 import math
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
@@ -456,12 +456,17 @@ def on_clickRotD50(ax, xi):
         ax.loglog(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
         ax.loglog(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
         plt.legend(loc="lower left",fontsize = 'x-small')
+        for i in range(0,180,1):
+            ax.loglog(tT,rotmax[i,0,:],color= 'Gray', linestyle=":", linewidth=0.5, alpha=0.3)
     else:
         ax.plot(tT,rotD50Spec[0],color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
         ax.plot(tT,rotD100Spec[0],color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
         ax.plot(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
         ax.plot(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
         plt.legend(loc="center right",fontsize = 'x-small')
+        for i in range(0,180,1):
+            ax.plot(tT,rotmax[i,0,:],color= 'Gray', linestyle=":", linewidth=0.5, alpha=0.3)
+    st.write("Gray Dotted Lines: Spectra at each azimuth angle")
 
 
     
@@ -1446,6 +1451,45 @@ if filenames != None:
             axA[2].set_title(nameCh3)
             ariasfn(arias3, axA[2], "Channel3", ariasmax)
             st.pyplot(figA)
+
+            durt = st.toggle("Create D5-75 and D5-95 as a function of period")
+            if durt:    
+                xi = 0.02
+                df = 1.0/dtAccel1
+                T = np.logspace(-2,1,200)
+                xiarias = st.number_input("Damping used", value = 0.05, min_value = 0.0, step = 0.01)
+                loglogArias = st.checkbox("Log-Log Plot", key='loglogArias', help="If checked, D5-75 will be plotted in log-log scale. Otherwise, it will be linear scale.")
+                figB, axB = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
+                sa1 = durt_function(accel1, df, T, xiarias)
+                sa2 = durt_function(accel2, df, T, xiarias)
+                sa3 = durt_function(accel3, df, T, xiarias)
+                if loglogArias:
+                    axB[0].loglog(T,sa1[0,:], label='D5-75')
+                    axB[0].loglog(T,sa1[1,:], label='D5-95')
+                    axB[1].loglog(T,sa2[0,:], label='D5-75')
+                    axB[1].loglog(T,sa2[1,:], label='D5-95')
+                    axB[2].loglog(T,sa3[0,:], label='D5-75')
+                    axB[2].loglog(T,sa3[1,:], label='D5-95')
+                else:
+                    axB[0].plot(T,sa1[0,:], label='D5-75')
+                    axB[0].plot(T,sa1[1,:], label='D5-95')
+                    axB[1].plot(T,sa2[0,:], label='D5-75')
+                    axB[1].plot(T,sa2[1,:], label='D5-95')
+                    axB[2].plot(T,sa3[0,:], label='D5-75')
+                    axB[2].plot(T,sa3[1,:], label='D5-95')
+                axB[0].grid()
+                axB[0].set_title(nameCh1)
+                axB[0].legend()
+                axB[1].grid()
+                axB[1].set_title(nameCh2)
+                axB[1].legend()
+                axB[2].grid()   
+                axB[2].set_title(nameCh3)
+                axB[2].set_xlabel('Period (secs)')
+                axB[2].legend()
+                st.pyplot(figB)
+                
+
         
         st.subheader("Response Spectra")
         tab1, tab2, tab3, tab4 = st.tabs(["Type of Spectra", "Damping", "End Period", "Plot Type"])

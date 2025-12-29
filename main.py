@@ -1162,6 +1162,9 @@ if filenames != None:
         T1 = np.arange(0.0,numofPointsAccel1*dtAccel1, dtAccel1)
         T2 = np.arange(0.0,numofPointsAccel2*dtAccel2, dtAccel2)
         T3 = np.arange(0.0,numofPointsAccel3*dtAccel3, dtAccel3)
+        T1 = T1[:noofpoints]
+        T2 = T2[:noofpoints]    
+        T3 = T3[:noofpoints]
 
         scale = scaleValue(unitsAccel1) 
         scaledAccel1 = [value*scale for value in accel1]
@@ -1632,4 +1635,5 @@ if filenames != None:
 
             st.write("This animation shows the recorded displacement in the three channels")
             d3animate()
+
 

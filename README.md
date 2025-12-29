@@ -38,4 +38,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 10/31/2025 Added functions to calculate D5-75 and D5-95 as function of period for a given damping ratio.  Also plotted individual spectra computed at each angle as grey lines to show variation between RotD100 and RotD00 Spectra.
 
+12/29/2025 Precision errors in setting array length corrected. 
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

@@ -276,7 +276,8 @@ def orbitplotfn():
     rotmaxLoc = np.argmax(np.sqrt(np.square(orx[:])+np.square(ory[:])))
     resmax = np.sqrt(np.square(orx[rotmaxLoc])+np.square(ory[rotmaxLoc]))
     resAngle = np.arctan2(orx[rotmaxLoc],ory[rotmaxLoc])
-    # print(rotmaxLoc,resAccelmax, xa[rotmaxLoc]*np.cos(resAngle)+ya[rotmaxLoc]*np.sin(resAngle) )
+    # st.write(rotmaxLoc,resmax,resAngle)
+
     ax.plot([0,orx[rotmaxLoc]], [0, ory[rotmaxLoc]], color='red',linewidth=2.0 )
     ax.annotate(str(round(resmax,3)) + "@ " +str(round(resAngle*180/math.pi,2))+ r"$^\circ$", xy=(orx[rotmaxLoc], ory[rotmaxLoc]), xytext=(orx[rotmaxLoc], ory[rotmaxLoc]), fontsize=10, color= 'Blue')
     ax.set_xlabel(xRec + ' ' + rT); ax.set_ylabel(yRec + ' ' + rT)
@@ -291,7 +292,21 @@ def orbitplotfn():
     for i in range(zind,len(xlabel)):
         cr = plt.Circle((0, 0), xlabel[i], linestyle="--", color= 'k',linewidth=0.3, fill=False)
         ax.add_patch(cr)
+
+    rotmaxlimit2 = np.zeros((361,2))
+    
+    for i in range(0,180,1):
+        resAngle2 = i/180.0 * np.pi
+        resAccel2 = np.zeros(len(orx[:]))
+        resAccel2 = (np.array(orx)*np.cos(resAngle2) + np.array(ory)*np.sin(resAngle2))
+        rotmaxlimit2[i,:] = absmaxND(resAccel2)*np.cos(resAngle2), absmaxND(resAccel2)*np.sin(resAngle2)
+        rotmaxlimit2[i+180,:] = -absmaxND(resAccel2)*np.cos(resAngle2), -absmaxND(resAccel2)*np.sin(resAngle2)
+    
+    rotmaxlimit2[360,:] = rotmaxlimit2[0,:]
+    ax.plot(rotmaxlimit2[:,0], rotmaxlimit2[:,1], color='orange', linestyle="--", linewidth=1.5, label = "Max Accel at each angle")
     ax.grid()
+    
+    
     return(1)
 
 def adrs(accel,ax):
@@ -1413,7 +1428,9 @@ if filenames != None:
             ax.set_title("Orbit plot for " + ooption)
             orbitplotfn()
             st.pyplot(fig4)
-            st.write('Note: Orbit plots can be misleading - points on the curves are resultant at a given time but are not the maximum resultant in that direction')
+            st.write('Note: Orbit plots can be misleading - ' \
+            'points on the curves are resultant at a given time but are not the maximum resultant in that direction.' \
+            ' The maximum resultant is indicated by the orange dashed line on the plot.')
 
 
 

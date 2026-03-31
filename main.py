@@ -1430,7 +1430,7 @@ if filenames != None:
             st.pyplot(fig4)
             st.write('Note: Orbit plots can be misleading - ' \
             'points on the curves are resultant at a given time but are not the maximum resultant in that direction.' \
-            ' The maximum resultant is indicated by the orange dashed line on the plot.')
+            ' The maximum resultant in each direction is indicated by the orange dashed line on the plot.')
 
 
 

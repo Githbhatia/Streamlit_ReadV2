@@ -40,4 +40,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 12/29/2025 Precision errors in setting array length corrected. 
 
+3/31/2026 Added the maximum resultant in all directions (was present in the stand alone version) to the orbit plots.  Intersestingly this was used (without attribution) in recent paper in Spectra.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

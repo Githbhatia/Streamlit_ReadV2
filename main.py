@@ -837,7 +837,7 @@ if "cesmd_url" in st.query_params.keys():
     exact_file_name = cesmd_path
 else:
     filenames = st.file_uploader("Upload zip file", type=["zip"])
-   
+    exact_file_name = filenames.name if filenames is not None else None
 
 
 

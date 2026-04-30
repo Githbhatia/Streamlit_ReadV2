@@ -10,6 +10,7 @@ import math
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
 import pydeck as pdk
+import urllib.request
 
 
 @st.cache_data
@@ -21,7 +22,7 @@ def readFileV2c(_f, f_name):
         hypocenter = line[11:].strip()
         # print(hypocenter)
     for line in islice(f, 5, 6):
-        nameCh=f_name[:f_name.find(".V2c")-7] + " " +line[13:37].strip()
+        nameCh=f_name[:f_name.lower().find(".v2c")-7] + " " +line[13:37].strip()
     # print(nameCh)
     for line in islice(f, 15, 16):
         headerPoints = int(line[:5].strip())
@@ -826,7 +827,19 @@ st.write("https://www.strongmotioncenter.org/")
 st.write("Can also read Peer Ground Motion files from https://ngawest2.berkeley.edu/")
 st.write("This app helps read the file, show the recording and create spectra from the recordings. Known issues with the app: Where files are named with non-cardinal angles, app is unable to determine which is the NS or EW channel, in such cases, please rename the files to include cardinal angles in the file name. ")
 st.write("Orbit plots and Tripartite Spectra options are included.")
-filenames=st.file_uploader("Upload zip file",type=[ "zip"])
+
+if "cesmd_url" in st.query_params.keys():
+    cesmd_path = st.query_params["cesmd_url"]
+    cesmd_temp_dl = urllib.request.urlretrieve(cesmd_path)
+    #print(cesmd_temp_dl[0])
+    with open(cesmd_temp_dl[0], 'rb') as f:
+        filenames = io.BytesIO(f.read())
+    exact_file_name = cesmd_path
+else:
+    filenames = st.file_uploader("Upload zip file", type=["zip"])
+    exact_file_name = filenames.name
+
+
 
 V2c = V2 = peer = False
 f= None
@@ -834,17 +847,17 @@ f_all=[];f_name=[]
 stationNo = 0
 
 if filenames != None:
-    if filenames.name[-4:]==".zip":
+    if filenames.name.lower()[-4:]==".zip":
         archive = zipfile.ZipFile(filenames, 'r')
         flist = archive.namelist()
         filenames2=io.BytesIO(archive.read(flist[0]))
         if len(flist) > 1 and flist[0][-4:].lower() != ".zip":
             for index,vfl in enumerate(flist):
-                if vfl[-4:]==".V2c"or vfl[-4:]==".V2C":
+                if vfl[-4:].lower()==".v2c":
                     f_all.append(io.TextIOWrapper(io.BytesIO(archive.read(vfl))))
                     f_name.append(vfl)
                     V2c =True
-                if vfl[-3:]==".v2"or vfl[-3:]==".V2":
+                if vfl[-3:].lower()==".v2":
                     f=io.TextIOWrapper(io.BytesIO(archive.read(vfl)))
                     V2 =True
                     break
@@ -863,11 +876,11 @@ if filenames != None:
             archive2 = zipfile.ZipFile(filenames2, 'r')
             flist2 = archive2.namelist()
             for index,vfl in enumerate(flist2):
-                if vfl[-4:]==".V2c"or vfl[-4:]==".V2C":
+                if vfl[-4:].lower()==".v2c":
                     f_all.append(io.TextIOWrapper(io.BytesIO(archive2.read(vfl))))
                     f_name.append(vfl)
                     V2c = True
-                if vfl[-3:]==".v2"or vfl[-3:]==".V2":
+                if vfl[-3:].lower()==".v2":
                     f=io.TextIOWrapper(io.BytesIO(archive2.read(vfl)))
                     V2 = True
                     break
@@ -879,18 +892,18 @@ if filenames != None:
             archive2 = zipfile.ZipFile(filenames2, 'r')
             flist2 = archive2.namelist()
             for index,vfl in enumerate(flist2):
-                if vfl[-4:]==".V2c"or vfl[-4:]==".V2C":
+                if vfl[-4:].lower()==".v2c":
                     f_all.append(io.TextIOWrapper(io.BytesIO(archive2.read(vfl))))
                     f_name.append(vfl)
                     V2c = True
-                if vfl[-3:]==".v2"or vfl[-3:]==".V2":
+                if vfl[-3:].lower()==".v2":
                     f=io.TextIOWrapper(io.BytesIO(archive2.read(vfl)))
                     V2 = True
                     break
             if len(f_all) == 0 and f == None:
                 st.error('Error', 'Zip file does not contain freefield .v2 or .V2c file')
                 st.stop()
-    elif filenames[0][-3:]==".v2" or filenames[0][-3:]==".V2":
+    elif filenames[0][-3:].lower()==".v2":
         f=open(filenames[0])
         V2 = True
     else:

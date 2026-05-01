@@ -830,7 +830,11 @@ st.write("Orbit plots and Tripartite Spectra options are included.")
 
 if "cesmd_url" in st.query_params.keys():
     cesmd_path = st.query_params["cesmd_url"]
-    cesmd_temp_dl = urllib.request.urlretrieve(cesmd_path)
+    try:
+        cesmd_temp_dl = urllib.request.urlretrieve(cesmd_path)
+    except Exception as e:
+        st.write(":red[Error: Invalid URL provided in the query parameter. Please check the URL and try again.]")
+        st.stop()
     #print(cesmd_temp_dl[0])
     with open(cesmd_temp_dl[0], 'rb') as f:
         filenames = io.BytesIO(f.read())

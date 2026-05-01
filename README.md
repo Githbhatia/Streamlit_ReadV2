@@ -42,6 +42,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 3/31/2026 Added the maximum resultant in all directions (was present in the stand alone version) to the orbit plots.
 
-4/30/2026 Added code written by CSMIP personnel to allow url parameters (for file input).  So to run app with a network link for the input file use "https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/?cesmd_url=[URL for file]".  Added some error catching for invalid URLs.
+4/30/2026 Added code written by CSMIP personnel to allow url parameters (for file input).  So to run app with a network link for the input file use "https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/?cesmd_url=URL for file".  Added some error catching for invalid URLs.
 
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

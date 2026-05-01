@@ -847,7 +847,7 @@ f_all=[];f_name=[]
 stationNo = 0
 
 if filenames != None:
-    if filenames.name.lower()[-4:]==".zip":
+    if exact_file_name.lower()[-4:]==".zip":
         archive = zipfile.ZipFile(filenames, 'r')
         flist = archive.namelist()
         filenames2=io.BytesIO(archive.read(flist[0]))

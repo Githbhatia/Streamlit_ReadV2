@@ -272,6 +272,7 @@ def resTripSpectrafn(accel,ax):
     return(1)
 
 def orbitplotfn():
+
     sLoc = int(starttime/dtAccel1); eLoc = int(endtime/dtAccel1)
     ax.plot(orx[sLoc:eLoc], ory[sLoc:eLoc])
     rotmaxLoc = np.argmax(np.sqrt(np.square(orx[:])+np.square(ory[:])))
@@ -408,7 +409,14 @@ def on_clickRotD50(ax, xi):
         horRec1 = horRec1.replace("270 Deg", "EW")
 
 
-    st.write("Selected Horizontal Recordings: " + horRec1 + " and " + horRec2)
+    
+    rotate2 = st.checkbox("Flip Axis", key='rotate2', help="360 Channel should be y channel and 90 channel should be x channel. If checked, the x and y channels will be swapped.")
+    if rotate2:
+        horRec = np.flip(horRec, axis=0)
+        horRec1, horRec2 = horRec2, horRec1
+    
+    st.write("Selected Horizontal Recordings: x = " + horRec1 + " and y = " + horRec2)
+    
     tT = np.logspace(-2,1,num=100) # Time vector for the spectral response
     # tT = np.concatenate( (np.arange(0.05, 0.1, 0.01) , np.arange (0.1, 0.5, 0.05) , np.arange (0.5, 2.0, 0.05) , np.arange (2.0, 2.5, 0.05) ,np.arange (2.5, 5.0, 0.05) ,np.arange (5.0, endPeriod, 0.05) ) ) # Time vector for the spectral response
     tT = np.append(tT,[0.1, 0.5, 2.0, 2.5, 5.0]) # Append the periods to the time vector
@@ -660,6 +668,13 @@ def d3animate():
         x[:]=[i*-1 for i in x[:]]
         xRec = xRec.replace("270 Deg", "EW")
 
+    rotate3 = st.checkbox("Flip Axis", key='rotate3', help="360 Channel should be y channel and 90 channel should be x channel. If checked, the x and y channels will be swapped.")
+    if rotate3:
+        xa, ya = ya, xa
+        xv, yv = yv, xv
+        x, y = y, x
+        xRec, yRec = yRec, xRec
+
     figAnim, ax = plt.subplot_mosaic([["A"],["B"],["C"],["D"]],
                              per_subplot_kw={('A'): {'projection': '3d'}},
                              gridspec_kw={'height_ratios': [10,1,1,1],
@@ -825,11 +840,13 @@ st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
 st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download free-field records (multiple ok) and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")
 st.write("Can also read Peer Ground Motion files from https://ngawest2.berkeley.edu/")
+st.write("Can use url parameters to directly link to a zip file on the web, for example: https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/?cesmd_url= :red[YOUR URL]")
 st.write("This app helps read the file, show the recording and create spectra from the recordings. Known issues with the app: Where files are named with non-cardinal angles, app is unable to determine which is the NS or EW channel, in such cases, please rename the files to include cardinal angles in the file name. ")
 st.write("Orbit plots and Tripartite Spectra options are included.")
 
 if "cesmd_url" in st.query_params.keys():
     cesmd_path = st.query_params["cesmd_url"]
+    st.write (":red[URL provided in query parameter: " + cesmd_path + "]")
     try:
         cesmd_temp_dl = urllib.request.urlretrieve(cesmd_path)
     except Exception as e:
@@ -840,9 +857,16 @@ if "cesmd_url" in st.query_params.keys():
         filenames = io.BytesIO(f.read())
     exact_file_name = cesmd_path
 else:
-    filenames = st.file_uploader("Upload zip file", type=["zip"])
+    filenames = st.file_uploader("Upload zip file (links work if used in \"Browse Files\")", type=["zip"])
     exact_file_name = filenames.name if filenames is not None else None
 
+def reset_app():
+    st.query_params.clear()
+    st.session_state.clicked = False   
+
+st.button("Reset App", type="primary",on_click=reset_app)
+
+ 
 
 
 V2c = V2 = peer = False
@@ -1376,7 +1400,7 @@ if filenames != None:
         orbitplot = st.checkbox("Create Orbit Plots", key= 'orbitplt', help = "Orbit plots show the relationship between the two horizontal channels. They are useful to visualize the ground motion in the horizontal plane.")
         if orbitplot:
             ooption = st.selectbox("Orbit Plot Type",("Accel", "Vel", "Disp"),)
-
+            
             if any(x in nameCh1.lower() for x in ["up", "hnz", "-v", "ud"]) :
                 if any(x in nameCh2.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel3.copy(); ya = scaledAccel2.copy(); za = scaledAccel1.copy()
@@ -1401,16 +1425,20 @@ if filenames != None:
                     xRec=nameCh1;yRec=nameCh3;zRec=nameCh2
 
             elif  any(x in nameCh3.lower() for x in ["up", "hnz", "-v", "ud"]) :
+                
                 if any(x in nameCh1.lower() for x in ["360", "180", "-hnn", "00","-n", "ns","340", "359"]):
                     xa = scaledAccel2.copy(); ya = scaledAccel1.copy(); za = scaledAccel3.copy()
                     xv = vel2.copy(); yv = vel1.copy(); zv = vel3.copy()
                     x = displ2.copy(); y = displ1.copy(); z = displ3.copy()
                     xRec=nameCh2;yRec=nameCh1;zRec=nameCh3
+                    # print(xRec, yRec, zRec)
+                    
                 else:
                     xa = scaledAccel1.copy(); ya = scaledAccel2.copy(); za = scaledAccel3.copy()
                     xv = vel1.copy(); yv = vel2.copy(); zv = vel3.copy()
                     x = displ1.copy(); y = displ2.copy(); z = displ3.copy()
                     xRec=nameCh1;yRec=nameCh2;zRec=nameCh3
+                    
             
             if "360" in yRec or "HNN" in yRec or "359" in yRec:  
                 yRec = yRec.replace("360 Deg", "NS")
@@ -1440,7 +1468,12 @@ if filenames != None:
                 rT ='Accel (g)'
                 yV = scaledAccel1
                 orx = xa; ory = ya
-
+            
+            rotate = st.checkbox("Flip axis", key="rotate", help="If checked, the orbit plot will be rotated to align with the cardinal directions. This is useful if the channels are not aligned with the cardinal directions.")
+            if rotate:
+                orx, ory = ory, orx
+                xRec, yRec = yRec, xRec
+                    
             fig4, ax = plt.subplots(1,1,figsize=(width, width))
             ax.set_title("Orbit plot for " + ooption)
             orbitplotfn()

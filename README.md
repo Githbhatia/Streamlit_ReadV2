@@ -44,4 +44,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 4/30/2026 Added code written by CSMIP personnel to allow url parameters (for file input).  So to run app with a network link for the input file use "https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/?cesmd_url=URL for file".  Added some error catching for invalid URLs.
 
+5/8/2026 Despite best efforts at indentifying NS and EW directions for horizontal motions, there are too many variations in names and files.  So provided options to flip axis (between x and y) at appropriate locations.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

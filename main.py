@@ -409,8 +409,7 @@ def on_clickRotD50(ax, xi):
         horRec1 = horRec1.replace("270 Deg", "EW")
 
 
-    
-    rotate2 = st.checkbox("Flip Axis", key='rotate2', help="360 Channel should be y channel and 90 channel should be x channel. If checked, the x and y channels will be swapped.")
+    rotate2 = st.checkbox("Flip Axis", key='rotate2', help="360/NS Channel should be y channel and 90/EW Channel should be x channel. If checked, the x and y channels will be swapped.")
     if rotate2:
         horRec = np.flip(horRec, axis=0)
         horRec1, horRec2 = horRec2, horRec1
@@ -668,7 +667,7 @@ def d3animate():
         x[:]=[i*-1 for i in x[:]]
         xRec = xRec.replace("270 Deg", "EW")
 
-    rotate3 = st.checkbox("Flip Axis", key='rotate3', help="360 Channel should be y channel and 90 channel should be x channel. If checked, the x and y channels will be swapped.")
+    rotate3 = st.checkbox("Flip Horizontal Axis", key='rotate3', help="360/NS Channel should be y channel and 90/EW channel should be x channel. If checked, the x and y channels will be swapped.")
     if rotate3:
         xa, ya = ya, xa
         xv, yv = yv, xv
@@ -841,7 +840,9 @@ st.write("V2/V2c files are free-field earthquake records that can be downloaded 
 st.write("https://www.strongmotioncenter.org/")
 st.write("Can also read Peer Ground Motion files from https://ngawest2.berkeley.edu/")
 st.write("Can use url parameters to directly link to a zip file on the web, for example: https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/?cesmd_url= :red[YOUR URL]")
-st.write("This app helps read the file, show the recording and create spectra from the recordings. Known issues with the app: Where files are named with non-cardinal angles, app is unable to determine which is the NS or EW channel, in such cases, please rename the files to include cardinal angles in the file name. ")
+st.write("This app helps read the file, show the recording and create spectra from the recordings.")
+st.write(":red[Known issues with the app: Where files are named with non-cardinal angles, app is unable to determine which is the NS or EW channel,]"
+":red[in such cases, please rename the files to include cardinal angles in the file name or flip axis at appriate places using the options in the app.]")
 st.write("Orbit plots and Tripartite Spectra options are included.")
 
 if "cesmd_url" in st.query_params.keys():

@@ -1,3 +1,4 @@
+import certifi
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,8 +11,27 @@ import math
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 import time
 import pydeck as pdk
-import urllib.request
+import urllib.request as ur
+import ssl
+import json as js
 
+
+@st.cache_resource
+def myurlopen(url): 
+    ctx = ssl.create_default_context(cafile=certifi.where())
+    try:
+        response = ur.urlopen(url)
+    except ur.URLError as e:
+        if hasattr(e, 'reason'):
+            st.write('We failed to reach a server.')
+            st.write('Reason: ', e.reason)
+            return()
+        elif hasattr(e, 'code'):
+            st.write('The server couldn\'t fulfill the request.')
+            st.write('Error code: ', e.code)
+            return() 
+    
+    return(response.read())
 
 @st.cache_data
 def readFileV2c(_f, f_name):
@@ -472,12 +492,34 @@ def on_clickRotD50(ax, xi):
     logolog2 = st.checkbox("Log-Log Plot", key='loglog2', help="If checked, the plot will be displayed in log-log scale.")
     ax.set_xlabel('Period (secs)')
     ax.set_ylabel('PSA (g)')
+    
+    if asce7:
+        try:
+            url = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ str(latitude) + '&longitude=' + str(longitude) +'&riskCategory='+ riskc +'&siteClass=' + sitecl + '&title=Example'
+            response = myurlopen(url)
+        except Exception as e:
+            st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
+            st.stop()
+        
+        if not response:
+            st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
+            st.stop()   
+        
+        rdata = js.loads(response)
+        t = rdata["response"]["data"]["multiPeriodDesignSpectrum"]["periods"]
+        s = rdata["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
+        tmce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
+        smce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+
 
     if logolog2:
         ax.loglog(tT,rotD50Spec[0],color= 'Red', linewidth=1.0, label = "RotD50 Response Spectrum")
         ax.loglog(tT,rotD100Spec[0],color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
         ax.loglog(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
         ax.loglog(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
+        if asce7:
+            ax.loglog(t,s,color= 'Blue', linestyle=":", linewidth=1.5, label = "ASCE 7-22 Design Spectrum")
+            ax.loglog(tmce,smce,color= 'Green', linestyle=":", linewidth=1.5, label = "ASCE 7-22 MCEr Spectrum")
         plt.legend(loc="lower left",fontsize = 'x-small')
         for i in range(0,180,1):
             ax.loglog(tT,rotmax[i,0,:],color= 'Gray', linestyle=":", linewidth=0.5, alpha=0.3)
@@ -486,6 +528,9 @@ def on_clickRotD50(ax, xi):
         ax.plot(tT,rotD100Spec[0],color= 'Red', linestyle="--", linewidth=1.0, label = "RotD100 Response Spectrum")
         ax.plot(tT,rotD00Spec[0],color= 'Red', linestyle='-.', linewidth=1.0, label = "RotD00 Response Spectrum")
         ax.plot(tT,geomeanSpectra[0,:],color= 'k', linewidth=1.0, label = "Geomean Spectra")
+        if asce7:
+            ax.plot(t,s,color= 'Blue', linestyle=":", linewidth=1.5, label = "ASCE 7-22 Design Spectrum")
+            ax.plot(tmce,smce,color= 'Green', linestyle=":", linewidth=1.5, label = "ASCE 7-22 MCEr Spectrum")
         plt.legend(loc="center right",fontsize = 'x-small')
         for i in range(0,180,1):
             ax.plot(tT,rotmax[i,0,:],color= 'Gray', linestyle=":", linewidth=0.5, alpha=0.3)
@@ -533,6 +578,7 @@ def on_clickRotD50(ax, xi):
     SIRotD50A = np.full((360), SIRotD50)
     SIRotD00A = np.full((360), SIRotD00)
     SIRotD100A = np.full((360), SIRotD100)
+
 
     figSI, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.set_theta_zero_location("N")  # theta=0 at the top
@@ -816,19 +862,19 @@ def cav(T, Y, std="std"):
         for i in range(t0, te, 1):
             starttime = float(i)
             endtime = float(i + 1.0)
-            # print(starttime, endtime)
-            heaviSide = np.max(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1])) >= 0.025
-            cav += np.trapezoid(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]), T[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]) if heaviSide else 0.0
+            # print(np.where(T==starttime)[0][0], ":", np.where(T>=endtime)[0][0])
+            heaviSide = np.max(np.abs(Y[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1])) >= 0.025
+            cav += np.trapezoid(np.abs(Y[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1]), T[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1]) if heaviSide else 0.0
         if T[0] < t0:
             starttime = float(T[0])
             endtime = float(t0)
-            heaviSide = np.max(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1])) >= 0.025
-            cav += np.trapezoid(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]), T[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]) if heaviSide else 0.0
+            heaviSide = np.max(np.abs(Y[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1])) >= 0.025
+            cav += np.trapezoid(np.abs(Y[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1]), T[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1]) if heaviSide else 0.0
         if T[-1] > te:
             starttime = float(te)
             endtime = float(T[-1])
-            heaviSide = np.max(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1])) >= 0.025
-            cav += np.trapezoid(np.abs(Y[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]), T[np.where(T==starttime)[0][0]:np.where(T==endtime)[0][0]+1]) if heaviSide else 0.0
+            heaviSide = np.max(np.abs(Y[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1])) >= 0.025
+            cav += np.trapezoid(np.abs(Y[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1]), T[np.where(T>=starttime)[0][0]:np.where(T>=endtime)[0][0]+1]) if heaviSide else 0.0
     return cav
 
 # Title
@@ -849,7 +895,7 @@ if "cesmd_url" in st.query_params.keys():
     cesmd_path = st.query_params["cesmd_url"]
     st.write (":red[URL provided in query parameter: " + cesmd_path + "]")
     try:
-        cesmd_temp_dl = urllib.request.urlretrieve(cesmd_path)
+        cesmd_temp_dl = ur.urlretrieve(cesmd_path)
     except Exception as e:
         st.write(":red[Error: Invalid URL provided in the query parameter. Please check the URL and try again.]")
         st.stop()
@@ -1663,9 +1709,54 @@ if filenames != None:
                 st.session_state.anim = False
             deflt = int(len(xi)/2)
             dampoption = st.selectbox("Pick one damping ratio",xi,index=deflt, key="dampingRotD50")
+            
+            if latitude =="" or longitude =="":
+                st.write("No latitude and longitude information in file. ASCE 7-22 spectra cannot be generated without latitude and longitude information for the site.")
+                asce7 = False
+            else:
+                asce7 = st.toggle("Plot ASCE 7-22 Spectra for comparison?", key="ASCEdampingRotD50", help="If checked, ASCE7-22 spectra will be included on the RotD50 plot for comparison" )
+
+            if asce7:
+                st.write("Select parameters to generate ASCE 7-22 spectra")
+                c1, c2 =st.columns(2)
+                with c1:
+                    t1, t2 = st.tabs(["Shear Wave Velocity", "Site Class"])
+                    with t1:
+                        swv = st.number_input("Shear Wave Velocity (ft/s)",value = 0.0, step = 100.0, min_value = 0.0, key="swvss")
+                        st.write("Note: Shear Wave Velocity of 0.0 will use Site Class selection to generate spectra")
+
+                    with t2:
+                        placeholder = st.empty()
+                        siteClassList=["A","B","BC","C","CD","D","DE","E", "Default"]
+                        siteclass = st.selectbox("Site Class",siteClassList,index = 8, key="siteclass")
+                        if swv != 0:
+                            st.write("Note: Clear Shear Wave Velocity to 0.0 to use generate spectra via site class")
+                with c2:
+                    RiskCategoryList=["I","II","III","IV"]
+                    riskc = st.selectbox("Risk Category",RiskCategoryList, index = RiskCategoryList.index("IV"), key="riskcategory")
+
+                sitecl = siteclass
+                if swv != 0.0:
+                    try:
+                        shearwavevel = float(swv)
+                    except ValueError:
+                        st.write("Invalid Shear Wave Velocity:"+ "Enter shear wave velocity in ft/sec and try again")
+                        st.stop()
+                    if shearwavevel==0:
+                        st.write("Invalid Shear Wave Velocity:"+ "Enter a non-zero shear wave velocity in ft/sec and try again")
+                        st.stop()
+                    shearwavevellimits = [('F',0.0),('E',500.0),('DE',700.0),('D',1000.0),('CD',1450.0),('C',2100.0),('BC',3000.0),('B',5000.0),('A',1000000.0)]
+                    for a, b in shearwavevellimits:
+                        if shearwavevel <= b:
+                            sitecl = a
+                            break   
+
+                st.write("Site Class used for ASCE 7-22 Spectra: " + sitecl)
+    
+
             fig6, ax = plt.subplots(1,1,figsize=(width, height))
             ax.set_title("RotD50 Spectra")
-            res = st.button("This is a computational intensive process \nand will take some time (3 to 10 mins)\nContinue?",on_click= click_button)
+            res = st.button("This is a computational intensive process \nand will take some time (3 to 10 mins)\nContinue?",on_click= click_button,type="primary", key="rotD50Button")
             if st.session_state.clicked:
                 rot50text = on_clickRotD50(ax,dampoption)
 

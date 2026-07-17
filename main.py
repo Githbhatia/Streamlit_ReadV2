@@ -382,7 +382,27 @@ def argmedian(x):
 
 def on_clickRotD50(ax, xi):
     #%% Parameters of the response spectra
-
+    if asce7:
+        try:
+            url = 'https://earthquake.usgs.gov/ws/building-codes/asce7-22/calculate?latitude='+ str(latitude) + '&longitude=' + str(longitude) +'&riskCategory='+ riskc +'&siteClass=' + sitecl + '&title=Example'
+            response = myurlopen(url)
+        except Exception as e:
+            st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
+            st.stop()
+        
+        if not response:
+            st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
+            st.stop()   
+        
+        rdata = js.loads(response)
+        if rdata["request"]["status"] != "success":
+            st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
+            st.stop()
+        t = rdata["response"]["data"]["multiPeriodDesignSpectrum"]["periods"]
+        s = rdata["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
+        tmce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
+        smce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+        
     horRec=np.zeros((2,len(scaledAccel1)))
     placeholder2 = st.empty()
 
@@ -493,23 +513,7 @@ def on_clickRotD50(ax, xi):
     ax.set_xlabel('Period (secs)')
     ax.set_ylabel('PSA (g)')
     
-    if asce7:
-        try:
-            url = 'https://earthquake.usgs.gov/ws/building-codes/asce7-22/calculate?latitude='+ str(latitude) + '&longitude=' + str(longitude) +'&riskCategory='+ riskc +'&siteClass=' + sitecl + '&title=Example'
-            response = myurlopen(url)
-        except Exception as e:
-            st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
-            st.stop()
-        
-        if not response:
-            st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
-            st.stop()   
-        
-        rdata = js.loads(response)
-        t = rdata["response"]["data"]["multiPeriodDesignSpectrum"]["periods"]
-        s = rdata["response"]["data"]["multiPeriodDesignSpectrum"]["ordinates"]
-        tmce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["periods"]
-        smce = rdata["response"]["data"]["multiPeriodMCErSpectrum"]["ordinates"]
+
 
 
     if logolog2:
@@ -1716,7 +1720,7 @@ if filenames != None:
                 st.write("No latitude and longitude information in file. ASCE 7-22 spectra cannot be generated without latitude and longitude information for the site.")
                 asce7 = False
             else:
-                asce7 = st.toggle("Plot ASCE 7-22 Spectra for comparison?", key="ASCEdampingRotD50", help="If checked, ASCE7-22 spectra will be included on the RotD50 plot for comparison" )
+                asce7 = st.toggle("Plot ASCE 7-22 Spectra for comparison?", key="ASCEdampingRotD50", help="If checked, ASCE7-22 spectra will be included on the RotD50 plot for comparison, do not use for latitudes/longitudes outside US" )
 
             if asce7:
                 st.write("Select parameters to generate ASCE 7-22 spectra")

@@ -48,4 +48,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 5/15/2026 When generating ROTD spectra, option to compare with ASCE 7-22 spectra added - users can select the site class (or use shear wave velocity) and risk category. Added errpr catching for cases where lat and long coordinates are not present in the input file or when the USGS website returns an error.  Also discovered and corrected a case where unconventional dt values can cause errors in CAV calculations.
 
+7/17/2026 Revised USGS URL for ASCE spectra.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

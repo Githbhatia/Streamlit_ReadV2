@@ -495,7 +495,7 @@ def on_clickRotD50(ax, xi):
     
     if asce7:
         try:
-            url = 'https://earthquake.usgs.gov/ws/designmaps/asce7-22.json?latitude='+ str(latitude) + '&longitude=' + str(longitude) +'&riskCategory='+ riskc +'&siteClass=' + sitecl + '&title=Example'
+            url = 'https://earthquake.usgs.gov/ws/building-codes/asce7-22/calculate?latitude='+ str(latitude) + '&longitude=' + str(longitude) +'&riskCategory='+ riskc +'&siteClass=' + sitecl + '&title=Example'
             response = myurlopen(url)
         except Exception as e:
             st.write(":red[Error: Error in obtaining ASCE 7-22 spectra. Turn off ASCE 7-22 spectra or check the input parameters for ASCE 7-22 spectra.]")
@@ -882,6 +882,8 @@ if 'clicked' not in st.session_state:
     st.session_state.clicked = False
 
 st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
+versionstr = "Version 2.0 (revision date 7/17/2026)"
+st.badge(versionstr, color="green")
 st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download free-field records (multiple ok) and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")
 st.write("Can also read Peer Ground Motion files from https://ngawest2.berkeley.edu/")

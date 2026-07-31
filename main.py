@@ -1494,11 +1494,18 @@ if filenames != None:
             axppsd[1].set_title(nameCh2)
             axppsd[2].set_title(nameCh3)
             axppsd[2].set_xlabel('Frequency [Hz]')
-            axppsd[0].set_ylabel('PSD [V**2/Hz]')
+            if doption =="Disp":
+                unitspsd = 'PSD [cm**2/Hz]'
+            elif doption =="Vel":
+                unitspsd = 'PSD [(cm/sec)**2/Hz]'
+            else:
+                unitspsd = 'PSD [g**2/Hz]'
+            
+            axppsd[0].set_ylabel(unitspsd)
             axppsd[0].grid()
-            axppsd[1].set_ylabel('PSD [V**2/Hz]')        
+            axppsd[1].set_ylabel(unitspsd)        
             axppsd[1].grid()
-            axppsd[2].set_ylabel('PSD [V**2/Hz]')
+            axppsd[2].set_ylabel(unitspsd)
             axppsd[2].grid()
             st.pyplot(figpsd)
 

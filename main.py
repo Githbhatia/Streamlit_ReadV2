@@ -1,5 +1,5 @@
 import certifi
-from scipy.fft import fft, fftfreq
+from scipy import fft, fftfreq
 from scipy import signal
 import streamlit as st
 import numpy as np

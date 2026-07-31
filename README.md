@@ -50,4 +50,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 7/17/2026 Revised USGS URL for ASCE spectra.  Revised to do better error catching when lat/long are outside US.
 
+7/30/2026 Added options to generate fourier spectra and power spectral density plots for the signals as requested by users.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/

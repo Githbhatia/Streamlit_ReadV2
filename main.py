@@ -1,4 +1,6 @@
 import certifi
+from scipy.fft import fft, fftfreq
+from scipy import signal
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1348,11 +1350,15 @@ if filenames != None:
     # width = st.sidebar.slider("plot width", 1, 25, 10)
     # height = st.sidebar.slider("plot height", 1, 10, 8)
     width = 10; height = 8
-    c1, c2 = st.columns(2)
+    c1, c2, c3, c4 = st.columns(4)
     with c1:
         doption = st.selectbox("Plot",("Accel", "Vel", "Disp"),)
-    with c2:
+    with c4:
         spectrogram = st.toggle("Show Spectrogram", key="accelSpec", help="Spectrograms show the frequency content of the signal over time. This is useful to see how the frequency content changes during the recording.")
+    with c2:
+        fourier = st.toggle("Show Fourier Spectra", key="accelFourier", help="Fourier spectra show the frequency content of the signal. This is useful to see the dominant frequencies in the recording.")
+    with c3:
+        spectraldensity = st.toggle("Show Power Spectral Density", key="SpectralDensity", help="Spectral density shows the power of the signal as a function of frequency. This is useful to see how the power of the signal is distributed across frequencies.")    
 
     if EOF == 1:
         if doption =="Disp":
@@ -1424,6 +1430,78 @@ if filenames != None:
 
         st.pyplot(fig)
 
+        if fourier:
+            st.write("Fourier Spectra of signal")
+            c1, c2 =st.columns(2)
+            with c2:
+                sfz,efz = st.slider("Select range of frequencies to display", 0.0, float(1/dtAccel1/2), (0.0, float(1/dtAccel1/2)),step=1.0, key="freqRange", help="Select range of frequencies to use for the Fourier spectra. Default is 0 to Nyquist frequency.")
+
+            figfft, axfft = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
+            N = len(yV1)
+            yf = fft(yV1)
+            xf = fftfreq(N, dtAccel1)[:N//2]
+            axfft[0].plot(xf, 2.0/N * np.abs(yf[0:N//2]), color= 'Blue', linewidth=1.0)
+            axfft[0].set_xlim(sfz, efz)
+            amax=[xf[np.argmax(abs(yf))], 2.0/N *max(abs(yf))]; axfft[0].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+            axfft[0].grid()
+            axfft[0].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
+
+            N = len(yV2)
+            yf = fft(yV2)
+            xf = fftfreq(N, dtAccel2)[:N//2]
+            axfft[1].plot(xf, 2.0/N * np.abs(yf[0:N//2]), color= 'Blue', linewidth=1.0)
+            axfft[1].set_xlim(sfz, efz)
+            amax=[xf[np.argmax(abs(yf))], 2.0/N *max(abs(yf))]; axfft[1].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+            axfft[1].grid()
+            axfft[1].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
+
+            N = len(yV3)
+            yf = fft(yV3)
+            xf = fftfreq(N, dtAccel3)[:N//2]
+            axfft[2].plot(xf, 2.0/N * np.abs(yf[0:N//2]), color= 'Blue', linewidth=1.0)
+            axfft[2].set_xlim(sfz, efz)
+            amax=[xf[np.argmax(abs(yf))], 2.0/N *max(abs(yf))]; axfft[2].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+            axfft[2].grid()
+            axfft[2].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
+            
+            axfft[0].set_title(nameCh1)
+            axfft[1].set_title(nameCh2)
+            axfft[2].set_title(nameCh3)
+
+            axfft[2].set_xlabel('Frequency [Hz]')
+            axfft[0].set_ylabel('Amplitude')
+            axfft[1].set_ylabel('Amplitude')        
+            axfft[2].set_ylabel('Amplitude')
+            st.pyplot(figfft)
+
+        if spectraldensity:
+            st.write("Power Spectral Density of signal")
+            c1, c2 =st.columns(2)
+            with c2:
+                sfzsd,efzsd = st.slider("Select range of frequencies to display", 0.0, float(1/dtAccel1/2), (0.0, float(1/dtAccel1/2)),step=1.0, key="freqRangesd", help="Select range of frequencies to use for the Power Spectral Density.")
+            figpsd, axppsd = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
+            # print(len(yV1), len(yV2), len(yV3))
+            fx, Pxx_den = signal.welch(np.array(yV1), scaling='density', fs=1.0/dtAccel1, nperseg=1024)
+            axppsd[0].semilogy(fx, Pxx_den, color= "Green", linewidth=1.0)
+            axppsd[0].set_xlim(sfzsd, efzsd)
+            fx, Pxx_den = signal.welch(np.array(yV2), scaling='density', fs=1.0/dtAccel2, nperseg=1024)
+            axppsd[1].semilogy(fx, Pxx_den,color= "Green", linewidth=1.0)
+            axppsd[1].set_xlim(sfzsd, efzsd)
+            fx, Pxx_den = signal.welch(np.array(yV3), fs=1.0/dtAccel3, nperseg=1024)
+            axppsd[2].semilogy(fx, Pxx_den, color= "Green", linewidth=1.0)
+            axppsd[2].set_xlim(sfzsd, efzsd)
+            axppsd[0].set_title(nameCh1)
+            axppsd[1].set_title(nameCh2)
+            axppsd[2].set_title(nameCh3)
+            axppsd[2].set_xlabel('Frequency [Hz]')
+            axppsd[0].set_ylabel('PSD [V**2/Hz]')
+            axppsd[0].grid()
+            axppsd[1].set_ylabel('PSD [V**2/Hz]')        
+            axppsd[1].grid()
+            axppsd[2].set_ylabel('PSD [V**2/Hz]')
+            axppsd[2].grid()
+            st.pyplot(figpsd)
+
         if spectrogram:
             st.write("Spectrograms of signal, colors represent intensity in dB")
             figspc, axpec = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
@@ -1442,6 +1520,11 @@ if filenames != None:
             axpec[0].set_ylim([0, endFreq])
             axcb = figspc.colorbar(im, ax=axpec.ravel().tolist(), pad=0.1, aspect = 30,location = 'bottom')
             st.pyplot(figspc)
+
+
+
+
+
 
         dfcorr = pd.DataFrame({"Plot 1": yV1, "Plot 2": yV2, "Plot 3": yV3})
         st.write("Correlation Coefficients:")

@@ -283,7 +283,6 @@ def resTripSpectrafn(accel,ax):
 
     x_left = np.min(tT); x_right =max(tT)
     ax.set_ylabel('Psuedo Velocity '+ unitsVel1)
-    ax.set_xlabel('Time Period (sec)')
     ax.grid()
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -1797,6 +1796,7 @@ if filenames != None:
             ax[2].set_title(nameCh3)
             resTripSpectrafn(accel3,ax[2]) 
             ax[2].legend(loc='upper right')
+            ax[2].set_xlabel('Period (secs)')
             st.pyplot(fig3)
 
         rotD50 = st.checkbox("Create Acceleration RotD50 Spectra (ASI,SI,DSI included)", key='rotD50Spectra', help= "RotD50 = Median value of the geometric mean of the two horizontalcomponents rotated through all nonredundant period-independent angles (Boore et al., 2006)")

@@ -888,7 +888,7 @@ if 'clicked' not in st.session_state:
     st.session_state.clicked = False
 
 st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
-versionstr = "Version 2.0 (revision date 7/17/2026)"
+versionstr = "Version 2.1 (revision date 7/30/2026)"
 st.badge(versionstr, color="green")
 st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download free-field records (multiple ok) and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")

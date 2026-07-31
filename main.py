@@ -283,6 +283,7 @@ def resTripSpectrafn(accel,ax):
 
     x_left = np.min(tT); x_right =max(tT)
     ax.set_ylabel('Psuedo Velocity '+ unitsVel1)
+    ax.set_xlabel('Time Period (sec)')
     ax.grid()
     ax.set_xscale("log")
     ax.set_yscale("log")

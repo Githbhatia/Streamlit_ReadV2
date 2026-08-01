@@ -888,7 +888,7 @@ if 'clicked' not in st.session_state:
     st.session_state.clicked = False
 
 st.title("Vizualize/Plot Recorded Earthquake Ground Motions")
-versionstr = "Version 2.1 (revision date 7/30/2026)"
+versionstr = "Version 2.11 (revision date 7/31/2026)"
 st.badge(versionstr, color="green")
 st.write("V2/V2c files are free-field earthquake records that can be downloaded from Center for Earthquake Engineering Strong Motion CESMD webiste.  Download free-field records (multiple ok) and do not unzip.")
 st.write("https://www.strongmotioncenter.org/")
@@ -1430,37 +1430,38 @@ if filenames != None:
 
         st.pyplot(fig)
 
+        @st.cache_data
+        def compute_fft(V, dt):
+            N = len(V)
+            yf = fft(V)
+            xf = fftfreq(N, dt)[:N//2]
+            return xf, 2.0/N * np.abs(yf[0:N//2])
+
         if fourier:
-            st.write("Fourier Spectra of signal")
+            st.badge("Fourier Spectra of signal", color="blue")
             c1, c2 =st.columns(2)
             with c2:
                 sfz,efz = st.slider("Select range of frequencies to display", 0.0, float(1/dtAccel1/2), (0.0, float(1/dtAccel1/2)),step=1.0, key="freqRange", help="Select range of frequencies to use for the Fourier spectra. Default is 0 to Nyquist frequency.")
 
             figfft, axfft = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
-            N = len(yV1)
-            yf = fft(yV1)
-            xf = fftfreq(N, dtAccel1)[:N//2]
-            axfft[0].plot(xf, 2.0/N * np.abs(yf[0:N//2]), color= 'Blue', linewidth=1.0)
+            xf, yf = compute_fft(yV1, dtAccel1)
+            axfft[0].plot(xf, yf, color= 'Blue', linewidth=1.0)
             axfft[0].set_xlim(sfz, efz)
-            amax=[xf[np.argmax(abs(yf))], 2.0/N *max(abs(yf))]; axfft[0].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+            amax=[xf[np.argmax(abs(yf))], max(yf)]; axfft[0].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
             axfft[0].grid()
             axfft[0].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
 
-            N = len(yV2)
-            yf = fft(yV2)
-            xf = fftfreq(N, dtAccel2)[:N//2]
-            axfft[1].plot(xf, 2.0/N * np.abs(yf[0:N//2]), color= 'Blue', linewidth=1.0)
+            xf, yf = compute_fft(yV2, dtAccel2)
+            axfft[1].plot(xf, yf, color= 'Blue', linewidth=1.0)
             axfft[1].set_xlim(sfz, efz)
-            amax=[xf[np.argmax(abs(yf))], 2.0/N *max(abs(yf))]; axfft[1].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+            amax=[xf[np.argmax(abs(yf))], max(yf)]; axfft[1].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
             axfft[1].grid()
             axfft[1].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
 
-            N = len(yV3)
-            yf = fft(yV3)
-            xf = fftfreq(N, dtAccel3)[:N//2]
-            axfft[2].plot(xf, 2.0/N * np.abs(yf[0:N//2]), color= 'Blue', linewidth=1.0)
+            xf, yf = compute_fft(yV3, dtAccel3)
+            axfft[2].plot(xf, yf, color= 'Blue', linewidth=1.0)
             axfft[2].set_xlim(sfz, efz)
-            amax=[xf[np.argmax(abs(yf))], 2.0/N *max(abs(yf))]; axfft[2].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
+            amax=[xf[np.argmax(abs(yf))], max(yf)]; axfft[2].annotate(str(np.round(amax[0],3)) +"Hz", xy=(amax[0], amax[1]), xytext=(amax[0], amax[1]))
             axfft[2].grid()
             axfft[2].ticklabel_format(axis='y', style='sci', scilimits=(0,0))
             
@@ -1474,20 +1475,26 @@ if filenames != None:
             axfft[2].set_ylabel('Amplitude')
             st.pyplot(figfft)
 
+        @st.cache_data
+        def compute_psd(V, dt):
+            N = len(V)
+            fx, Pxx_den = signal.welch(np.array(V), scaling='density', fs=1.0/dt, nperseg=1024)
+            return fx, Pxx_den
+
         if spectraldensity:
-            st.write("Power Spectral Density of signal")
+            st.badge("Power Spectral Density of signal", color="blue")
             c1, c2 =st.columns(2)
             with c2:
                 sfzsd,efzsd = st.slider("Select range of frequencies to display", 0.0, float(1/dtAccel1/2), (0.0, float(1/dtAccel1/2)),step=1.0, key="freqRangesd", help="Select range of frequencies to use for the Power Spectral Density.")
             figpsd, axppsd = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
             # print(len(yV1), len(yV2), len(yV3))
-            fx, Pxx_den = signal.welch(np.array(yV1), scaling='density', fs=1.0/dtAccel1, nperseg=1024)
+            fx, Pxx_den = compute_psd(yV1, dtAccel1)
             axppsd[0].semilogy(fx, Pxx_den, color= "Green", linewidth=1.0)
             axppsd[0].set_xlim(sfzsd, efzsd)
-            fx, Pxx_den = signal.welch(np.array(yV2), scaling='density', fs=1.0/dtAccel2, nperseg=1024)
+            fx, Pxx_den = compute_psd(yV2, dtAccel2)
             axppsd[1].semilogy(fx, Pxx_den,color= "Green", linewidth=1.0)
             axppsd[1].set_xlim(sfzsd, efzsd)
-            fx, Pxx_den = signal.welch(np.array(yV3), fs=1.0/dtAccel3, nperseg=1024)
+            fx, Pxx_den = compute_psd(yV3, dtAccel3)
             axppsd[2].semilogy(fx, Pxx_den, color= "Green", linewidth=1.0)
             axppsd[2].set_xlim(sfzsd, efzsd)
             axppsd[0].set_title(nameCh1)
@@ -1509,8 +1516,9 @@ if filenames != None:
             axppsd[2].grid()
             st.pyplot(figpsd)
 
+
         if spectrogram:
-            st.write("Spectrograms of signal, colors represent intensity in dB")
+            st.badge("Spectrograms of signal, colors represent intensity in dB", color="blue")
             figspc, axpec = plt.subplots(3,1,sharex='col',sharey='all',figsize=(width, height))
             spectrum, freqs, tm, im =axpec[0].specgram(yV1, Fs=1.0/dtAccel1, vmin=-160, vmax=-20, NFFT=256, noverlap=128,cmap='turbo')
             axpec[0].set_title(nameCh1)
@@ -1534,7 +1542,7 @@ if filenames != None:
 
 
         dfcorr = pd.DataFrame({"Plot 1": yV1, "Plot 2": yV2, "Plot 3": yV3})
-        st.write("Correlation Coefficients:")
+        st.badge("Correlation Coefficients", color="blue")
         st.write(dfcorr.corr())
         
 

@@ -52,4 +52,6 @@ This is a Streamlit version of the ReadV2 application posted as separate applica
 
 7/30/2026 Added options to generate fourier spectra and power spectral density plots for the signals as requested by users.
 
+7/31/2026 Performance improvement for fourier spectra and power spectral density plots by caching calls.
+
 Try out at https://appreadv2-8tcju9gckv5rnfcrja59nj.streamlit.app/
